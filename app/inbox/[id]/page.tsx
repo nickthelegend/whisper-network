@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 export default function MessageView() {
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
     return (
         <div className="bg-background-dark font-mono text-white overflow-hidden h-screen w-full selection:bg-primary selection:text-white">
             <div className="flex flex-col h-screen w-full">
@@ -38,39 +43,48 @@ export default function MessageView() {
 
                 <div className="flex flex-1 overflow-hidden">
                     {/* Sidebar */}
-                    <aside className="w-[260px] flex-shrink-0 border-r border-border-muted flex flex-col bg-background-dark">
-                        <div className="p-4">
-                            <button className="w-full bg-primary hover:bg-[#8b5cf6] text-white py-3 text-[11px] font-bold flex items-center justify-center gap-2 uppercase tracking-widest mb-6 transition-colors">
+                    <aside className={`${isSidebarCollapsed ? "w-[80px]" : "w-[260px]"} transition-all duration-300 flex-shrink-0 border-r border-border-muted flex flex-col bg-background-dark overflow-hidden`}>
+                        <div className="p-4 flex flex-col gap-4">
+                            <Link href="/inbox/compose" className={`w-full bg-primary hover:bg-[#8b5cf6] text-white py-3 text-[11px] font-bold flex items-center justify-center gap-2 uppercase tracking-widest transition-colors ${isSidebarCollapsed ? "px-0" : ""}`}>
                                 <span className="material-symbols-outlined text-sm">edit_square</span>
-                                COMPOSE_MSG
+                                {!isSidebarCollapsed && <span>COMPOSE_MSG</span>}
+                            </Link>
+                            {/* Collapse Toggle */}
+                            <button
+                                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                className="w-full flex items-center justify-center h-10 rounded-lg bg-card-dark border border-[#312447] text-[#a692c8] hover:text-white hover:border-primary transition-all shadow-sm"
+                            >
+                                <span className="material-symbols-outlined transition-transform duration-300" style={{ transform: isSidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                                    side_navigation
+                                </span>
                             </button>
                         </div>
-                        <nav className="flex-1 space-y-1">
-                            <Link href="/inbox" className="flex items-center gap-4 px-6 py-4 border-l-2 border-primary bg-primary/10 text-white cursor-pointer transition-all">
+                        <nav className="flex-1 space-y-1 px-4">
+                            <Link href="/inbox" className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-primary bg-primary/10 text-white cursor-pointer transition-all`}>
                                 <span className="material-symbols-outlined text-lg">inbox</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Inbox</span>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Inbox</span>}
                             </Link>
-                            <div className="flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">send</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Sent</span>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Sent</span>}
                             </div>
-                            <div className="flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">drafts</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Drafts</span>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Drafts</span>}
                             </div>
-                            <div className="flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">contacts</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Contacts</span>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Contacts</span>}
                             </div>
-                            <div className="mt-auto border-t border-border-muted flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                            <Link href="/inbox/settings" className={`mt-auto border-t border-border-muted flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">settings</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Settings</span>
-                            </div>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Settings</span>}
+                            </Link>
                         </nav>
-                        <div className="p-4 bg-background-dark border-t border-border-muted">
-                            <div className="flex items-center gap-3 px-2">
-                                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-                                <span className="text-[9px] text-[#a692c8] uppercase tracking-widest font-bold">Node_Online</span>
+                        <div className="p-4 bg-background-dark border-t border-border-muted flex justify-center">
+                            <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                {!isSidebarCollapsed && <span className="text-[9px] text-[#a692c8] uppercase tracking-widest font-bold truncate">Node_Online</span>}
                             </div>
                         </div>
                     </aside>
@@ -191,25 +205,27 @@ export default function MessageView() {
                         </footer>
                     </main>
                     {/* Detail Side Block */}
-                    <aside className="w-[300px] flex-shrink-0 border-l border-border-muted flex flex-col bg-background-dark/50 hidden lg:flex">
-                        <div className="p-8">
-                            <h4 className="text-[10px] font-bold text-white uppercase tracking-[0.2em] mb-6">Security Context</h4>
-                            <div className="space-y-6">
-                                <div>
-                                    <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-2 font-bold">Encryption Type</p>
-                                    <p className="text-xs text-white">ChaCha20-Poly1305 (AEAD)</p>
-                                </div>
-                                <div>
-                                    <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-2 font-bold">Proof of Origin</p>
-                                    <p className="text-xs text-white">verified_zkp_assertion</p>
-                                </div>
-                                <div className="pt-6 border-t border-border-muted">
-                                    <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-2 font-bold">Metadata Status</p>
-                                    <span className="px-2 py-0.5 bg-green-500/10 text-green-500 border border-green-500/20 text-[9px] font-bold uppercase tracking-widest">Stripped</span>
+                    {!isSidebarCollapsed && (
+                        <aside className="w-[300px] flex-shrink-0 border-l border-border-muted flex flex-col bg-background-dark/50 hidden lg:flex">
+                            <div className="p-8">
+                                <h4 className="text-[10px] font-bold text-white uppercase tracking-[0.2em] mb-6">Security Context</h4>
+                                <div className="space-y-6">
+                                    <div>
+                                        <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-2 font-bold">Encryption Type</p>
+                                        <p className="text-xs text-white">ChaCha20-Poly1305 (AEAD)</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-2 font-bold">Proof of Origin</p>
+                                        <p className="text-xs text-white">verified_zkp_assertion</p>
+                                    </div>
+                                    <div className="pt-6 border-t border-border-muted">
+                                        <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-2 font-bold">Metadata Status</p>
+                                        <span className="px-2 py-0.5 bg-green-500/10 text-green-500 border border-green-500/20 text-[9px] font-bold uppercase tracking-widest">Stripped</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </aside>
+                        </aside>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,47 +1,75 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 export default function InboxPage() {
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-white overflow-hidden h-screen w-full selection:bg-primary selection:text-white">
             <div className="flex h-screen w-full">
                 {/* Sidebar Navigation */}
-                <aside className="w-[240px] flex-shrink-0 bg-background-dark border-r border-[#312447] flex flex-col justify-between p-6">
+                <aside className={`${isSidebarCollapsed ? "w-[80px]" : "w-[240px]"} transition-all duration-300 flex-shrink-0 bg-background-dark border-r border-[#312447] flex flex-col justify-between p-4 overflow-hidden`}>
                     <div className="flex flex-col gap-8">
                         {/* Logo Section */}
-                        <Link href="/" className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-primary text-2xl">graphic_eq</span>
-                            <span className="text-sm font-bold tracking-[0.2em] uppercase text-white">WHISPER</span>
-                        </Link>
+                        <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "justify-between"} px-2`}>
+                            <Link href="/" className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary text-3xl shrink-0">graphic_eq</span>
+                                {!isSidebarCollapsed && (
+                                    <span className="text-sm font-bold tracking-[0.2em] uppercase text-white truncate">WHISPER</span>
+                                )}
+                            </Link>
+                        </div>
+
+                        {/* Collapse Toggle Button */}
+                        <div className="px-2">
+                            <button
+                                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                className="w-full flex items-center justify-center h-10 rounded-lg bg-card-dark border border-[#312447] text-[#a692c8] hover:text-white hover:border-primary transition-all shadow-sm"
+                            >
+                                <span className="material-symbols-outlined transition-transform duration-300" style={{ transform: isSidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                                    side_navigation
+                                </span>
+                            </button>
+                        </div>
+
                         {/* Nav Links */}
-                        <nav className="flex flex-col gap-2">
-                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 border border-primary/30 text-white cursor-pointer group transition-all">
-                                <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>inbox</span>
-                                <p className="text-sm font-semibold flex-1">Inbox</p>
-                                <span className="bg-primary text-[10px] px-2 py-0.5 rounded-full">12</span>
+                        <nav className="flex flex-col gap-2 px-2">
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-3 px-4"} py-3 rounded-xl bg-primary/20 border border-primary/30 text-white cursor-pointer group transition-all`}>
+                                <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>inbox</span>
+                                {!isSidebarCollapsed && <p className="text-sm font-semibold flex-1 truncate">Inbox</p>}
+                                {!isSidebarCollapsed && <span className="bg-primary text-[10px] px-2 py-0.5 rounded-full">12</span>}
                             </div>
-                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group">
-                                <span className="material-symbols-outlined group-hover:text-white transition-colors">send</span>
-                                <p className="text-sm font-medium group-hover:text-white transition-colors">Sent</p>
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-3 px-4"} py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group`}>
+                                <span className="material-symbols-outlined group-hover:text-white transition-colors shrink-0">send</span>
+                                {!isSidebarCollapsed && <p className="text-sm font-medium group-hover:text-white transition-colors truncate">Sent</p>}
                             </div>
-                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group">
-                                <span className="material-symbols-outlined group-hover:text-white transition-colors">draft</span>
-                                <p className="text-sm font-medium group-hover:text-white transition-colors">Drafts</p>
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-3 px-4"} py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group`}>
+                                <span className="material-symbols-outlined group-hover:text-white transition-colors shrink-0">draft</span>
+                                {!isSidebarCollapsed && <p className="text-sm font-medium group-hover:text-white transition-colors truncate">Drafts</p>}
                             </div>
-                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group">
-                                <span className="material-symbols-outlined group-hover:text-white transition-colors">contacts</span>
-                                <p className="text-sm font-medium group-hover:text-white transition-colors">Contacts</p>
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-3 px-4"} py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group`}>
+                                <span className="material-symbols-outlined group-hover:text-white transition-colors shrink-0">contacts</span>
+                                {!isSidebarCollapsed && <p className="text-sm font-medium group-hover:text-white transition-colors truncate">Contacts</p>}
                             </div>
-                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group">
-                                <span className="material-symbols-outlined group-hover:text-white transition-colors">settings</span>
-                                <p className="text-sm font-medium group-hover:text-white transition-colors">Settings</p>
-                            </div>
+                            <Link href="/inbox/settings" className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-3 px-4"} py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group`}>
+                                <span className="material-symbols-outlined group-hover:text-white transition-colors shrink-0">settings</span>
+                                {!isSidebarCollapsed && <p className="text-sm font-medium group-hover:text-white transition-colors truncate">Settings</p>}
+                            </Link>
                         </nav>
                     </div>
+
                     {/* Compose Button */}
-                    <button className="w-full bg-primary hover:bg-[#8b5cf6] active-glow text-white rounded-xl py-4 flex items-center justify-center gap-2 font-bold text-sm transition-all transform active:scale-95 shadow-lg shadow-primary/20 uppercase tracking-widest">
-                        <span className="material-symbols-outlined">edit</span>
-                        <span>Compose</span>
-                    </button>
+                    <div className="px-2">
+                        <Link
+                            href="/inbox/compose"
+                            className={`bg-primary hover:bg-[#8b5cf6] active-glow text-white rounded-xl ${isSidebarCollapsed ? "h-12 w-12" : "py-4 px-4 w-full"} flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-lg shadow-primary/20 uppercase tracking-widest mx-auto`}
+                        >
+                            <span className="material-symbols-outlined shrink-0">edit</span>
+                            {!isSidebarCollapsed && <span>Compose</span>}
+                        </Link>
+                    </div>
                 </aside>
 
                 {/* Main Content */}

@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 export default function ComposePage() {
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
     return (
         <div className="bg-background-dark font-mono text-white overflow-hidden h-screen w-full selection:bg-primary selection:text-white">
             <div className="flex flex-col h-screen w-full">
@@ -29,7 +34,7 @@ export default function ComposePage() {
                             </div>
                             <div className="relative">
                                 <div className="w-10 h-10 rounded-full border-2 border-primary p-0.5 shadow-[0_0_10px_rgba(124,59,237,0.4)]">
-                                    <img alt="User Profile" className="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpjoG9GjFxc0hsmm_YYCP5zjlC4tlfY2oFWDd3p3kOL76TdDqn7yJkIcl4Xp52ocFWkxfKnasiwX9xLQfBStsxvcnmuay7Ma8uvvKxzycxfEiBtGPsetdZ6kPoF-9_tmnUYivK3wq5eeRCoN3GWk9R3t2wGjOlkq1nfVxzg2ovQfntMhH-r5VH6AmRFD7vAQ5YEst2aJdQQcSRsu1oq-CaTe0VzCjNiGK7a-07lpAP2kqh0r_sk6NNVnNm3AmyoNHCbp9iFRNLC9Q" />
+                                    <img alt="User Profile" className="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBEevWT4Z0pk7H5pPH3aC4HZCsNdbpfoouMVIFvabV82oGLNsBkZ3Wi8vm2fBuEhr9cqTgojf4CM39d_gagyMsDqIOnShTuTyIJvrL1qEMdEjkNWOtcxCzZhinduAp6HFmxCKbKvVscUQQj6EKofbItp97Y8EOBR0buDxJ2jCuipfBtCitjpGmAUwd-TeKCLJCeR5alCXVcmJQvd0aHeDu8fm35SFOeEELEO18nCh3rXYcEBg8VOk5jFJxN2HOKYMdZtsteFik8ao" />
                                 </div>
                             </div>
                         </div>
@@ -38,39 +43,48 @@ export default function ComposePage() {
 
                 <div className="flex flex-1 overflow-hidden">
                     {/* Sidebar */}
-                    <aside className="w-[260px] flex-shrink-0 border-r border-border-muted flex flex-col bg-background-dark">
-                        <div className="p-4">
-                            <button className="w-full bg-primary/20 border border-primary/40 text-primary py-3 text-[11px] font-bold flex items-center justify-center gap-2 uppercase tracking-widest mb-6">
+                    <aside className={`${isSidebarCollapsed ? "w-[80px]" : "w-[260px]"} transition-all duration-300 flex-shrink-0 border-r border-border-muted flex flex-col bg-background-dark overflow-hidden`}>
+                        <div className="p-4 flex flex-col gap-4">
+                            <button className={`w-full bg-primary/20 border border-primary/40 text-primary py-3 text-[11px] font-bold flex items-center justify-center gap-2 uppercase tracking-widest ${isSidebarCollapsed ? "px-0" : ""}`}>
                                 <span className="material-symbols-outlined text-sm">edit_square</span>
-                                COMPOSE_MODE
+                                {!isSidebarCollapsed && <span>COMPOSE_MODE</span>}
+                            </button>
+                            {/* Collapse Toggle */}
+                            <button
+                                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                className="w-full flex items-center justify-center h-10 rounded-lg bg-card-dark border border-[#312447] text-[#a692c8] hover:text-white hover:border-primary transition-all shadow-sm"
+                            >
+                                <span className="material-symbols-outlined transition-transform duration-300" style={{ transform: isSidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                                    side_navigation
+                                </span>
                             </button>
                         </div>
-                        <nav className="flex-1 space-y-1">
-                            <Link href="/inbox" className="flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                        <nav className="flex-1 space-y-1 px-4">
+                            <Link href="/inbox" className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">inbox</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Inbox</span>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Inbox</span>}
                             </Link>
-                            <div className="flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">send</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Sent</span>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Sent</span>}
                             </div>
-                            <div className="flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">drafts</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Drafts</span>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Drafts</span>}
                             </div>
-                            <div className="flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">contacts</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Contacts</span>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Contacts</span>}
                             </div>
-                            <div className="mt-auto border-t border-border-muted flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer">
+                            <Link href="/inbox/settings" className={`mt-auto border-t border-border-muted flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-4"} py-4 border-l-2 border-transparent text-[#a692c8] hover:bg-primary/5 hover:text-white transition-all cursor-pointer`}>
                                 <span className="material-symbols-outlined text-lg">settings</span>
-                                <span className="text-xs font-bold tracking-widest uppercase">Settings</span>
-                            </div>
+                                {!isSidebarCollapsed && <span className="text-xs font-bold tracking-widest uppercase truncate">Settings</span>}
+                            </Link>
                         </nav>
-                        <div className="p-4 bg-background-dark border-t border-border-muted">
-                            <div className="flex items-center gap-3 px-2">
+                        <div className="p-4 bg-background-dark border-t border-border-muted flex justify-center">
+                            <div className="flex items-center gap-3">
                                 <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                                <span className="text-[9px] text-[#a692c8] uppercase tracking-widest font-bold">Secure_Node_Active</span>
+                                {!isSidebarCollapsed && <span className="text-[9px] text-[#a692c8] uppercase tracking-widest font-bold truncate">Secure_Node_Active</span>}
                             </div>
                         </div>
                     </aside>
