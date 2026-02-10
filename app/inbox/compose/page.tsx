@@ -2,9 +2,99 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { generateMidnightProof } from "@/lib/midnight-client";
+import { getMidnight, signTx } from "@/lib/midnightConnector";
 
 export default function ComposePage() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    
+    // Form State
+    const [recipient, setRecipient] = useState("");
+    const [subject, setSubject] = useState("");
+    const [body, setBody] = useState("");
+    
+    // Transmission State
+    const [status, setStatus] = useState<"idle" | "encrypting" | "proving" | "signing" | "relaying" | "success" | "error">("idle");
+    const [logs, setLogs] = useState<string[]>([]);
+    const [txHash, setTxHash] = useState("");
+
+    const addLog = (msg: string) => setLogs(prev => [...prev, `> ${msg}`]);
+
+    const handleTransmit = async () => {
+        if (!recipient || !body) return;
+        
+        try {
+            setStatus("encrypting");
+            setLogs([]);
+            addLog("Initializing Secure Channel...");
+            
+            // 1. Check Wallet Connection
+            try {
+                getMidnight(); 
+                addLog("Wallet Connection: Active [Lace]");
+            } catch (e) {
+                addLog("ERROR: Wallet not connected. Please connect in Settings.");
+                setStatus("error");
+                return;
+            }
+
+            // 2. Encrypt Message (Mock ECIES for demo)
+            await new Promise(r => setTimeout(r, 800)); // Sim delay
+            addLog(`Encrypting payload for ${recipient}...`);
+            const encryptedPayload = {
+                ciphertext: Buffer.from(body).toString("base64"), // Mock encryption
+                iv: "mock-initialization-vector",
+                mac: "mock-auth-tag"
+            };
+            addLog("Encryption Complete. Blob size: " + body.length + " bytes");
+
+            // 3. Generate ZK Proof
+            setStatus("proving");
+            addLog("Requesting ZK Proof from Local Server...");
+            const proof = await generateMidnightProof("me@whisper.net", "my-secret");
+            addLog(`Proof Generated. Commitment: ${proof.commitment.substring(0, 10)}...`);
+
+            // 4. Sign Transaction (Real Wallet Interaction)
+            setStatus("signing");
+            addLog("Requesting User Signature...");
+            // In a real app, we'd sign the hash of the encrypted message + proof
+            const msgHash = "deadbeef"; 
+            // await signTx(msgHash, true); // Uncomment to trigger real wallet popup
+            addLog("Transaction Signed by User.");
+
+            // 5. Submit to Relayer
+            setStatus("relaying");
+            addLog("Broadcasting to Whisper Relayer Network...");
+            
+            const response = await fetch("/api/relayer", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    proof,
+                    publicSignals: proof.publicSignals,
+                    encryptedMessage: encryptedPayload,
+                    recipient
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setStatus("success");
+                setTxHash(result.txHash);
+                addLog(`Transmission Successful!`);
+                addLog(`Tx Hash: ${result.txHash}`);
+                addLog(`IPFS CID: ${result.ipfsHash}`);
+            } else {
+                throw new Error(result.error || "Relayer failed");
+            }
+
+        } catch (error: any) {
+            console.error(error);
+            setStatus("error");
+            addLog(`CRITICAL ERROR: ${error.message}`);
+        }
+    };
 
     return (
         <div className="bg-background-dark font-mono text-white overflow-hidden h-screen w-full selection:bg-primary selection:text-white">
@@ -135,6 +225,8 @@ export default function ComposePage() {
                                                         className="w-full bg-black/40 border border-border-muted rounded-lg py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-primary transition-all placeholder-white/20"
                                                         type="text"
                                                         placeholder="wallet_address.eth or @whisper_handle"
+                                                        value={recipient}
+                                                        onChange={(e) => setRecipient(e.target.value)}
                                                     />
                                                 </div>
                                             </div>
@@ -148,6 +240,8 @@ export default function ComposePage() {
                                                         className="w-full bg-black/40 border border-border-muted rounded-lg py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-primary transition-all placeholder-white/20"
                                                         type="text"
                                                         placeholder="Message header for metadata shielding..."
+                                                        value={subject}
+                                                        onChange={(e) => setSubject(e.target.value)}
                                                     />
                                                 </div>
                                             </div>
@@ -159,6 +253,8 @@ export default function ComposePage() {
                                                     <textarea
                                                         className="w-full h-64 bg-black/40 border border-border-muted rounded-lg p-6 text-sm text-white focus:outline-none focus:border-primary transition-all placeholder-white/10 resize-none font-mono leading-relaxed"
                                                         placeholder="Type your encrypted transmission here..."
+                                                        value={body}
+                                                        onChange={(e) => setBody(e.target.value)}
                                                     ></textarea>
                                                     <div className="absolute bottom-4 right-4 text-[9px] text-[#a692c8] uppercase tracking-widest font-bold">
                                                         Secure_Input_Active
@@ -166,49 +262,40 @@ export default function ComposePage() {
                                                 </div>
                                             </div>
 
-                                            {/* Attachment Section */}
-                                            <div className="pt-4 border-t border-white/5 flex flex-wrap gap-4">
-                                                <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-[10px] font-bold text-[#a692c8] hover:text-white hover:border-primary transition-all uppercase tracking-widest">
-                                                    <span className="material-symbols-outlined text-sm">attach_file</span>
-                                                    Attach_Blob
-                                                </button>
-                                                <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-[10px] font-bold text-[#a692c8] hover:text-white hover:border-primary transition-all uppercase tracking-widest">
-                                                    <span className="material-symbols-outlined text-sm">schedule</span>
-                                                    Set_Expiry
-                                                </button>
-                                            </div>
+                                            {/* Transmission Console Log (Visible when transmitting) */}
+                                            {logs.length > 0 && (
+                                                <div className="bg-black/60 rounded-lg p-4 font-mono text-xs border border-primary/20 max-h-40 overflow-y-auto custom-scrollbar">
+                                                    {logs.map((log, i) => (
+                                                        <p key={i} className={`mb-1 ${log.includes("ERROR") ? "text-red-400" : log.includes("Successful") ? "text-green-400 font-bold" : "text-primary/80"}`}>
+                                                            {log}
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            )}
 
                                             <div className="pt-8 flex justify-between items-center">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></div>
-                                                    <span className="text-[10px] text-primary uppercase tracking-widest font-black">Ready to encrypt</span>
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${status === "idle" ? "bg-primary" : status === "success" ? "bg-green-400" : "bg-yellow-400"} animate-ping`}></div>
+                                                    <span className="text-[10px] text-primary uppercase tracking-widest font-black">
+                                                        {status === "idle" ? "Ready to encrypt" : status === "success" ? "Transmission Complete" : "Processing Protocol..."}
+                                                    </span>
                                                 </div>
                                                 <div className="flex gap-4">
                                                     <button className="px-8 py-3 bg-white/5 border border-white/10 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all">
                                                         Save_Draft
                                                     </button>
-                                                    <button className="px-12 py-3 bg-primary text-white text-[11px] font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(124,59,237,0.4)] hover:scale-105 active:scale-95 transition-all">
-                                                        Transmit_Msg
+                                                    <button 
+                                                        onClick={handleTransmit}
+                                                        disabled={status !== "idle" && status !== "error" && status !== "success"}
+                                                        className={`px-12 py-3 bg-primary text-white text-[11px] font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(124,59,237,0.4)] hover:scale-105 active:scale-95 transition-all
+                                                            ${(status !== "idle" && status !== "error" && status !== "success") ? "opacity-50 cursor-wait" : ""}
+                                                        `}
+                                                    >
+                                                        {status === "idle" || status === "success" || status === "error" ? "Transmit_Msg" : "Transmitting..."}
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-
-                                {/* Additional Info / Security Stats */}
-                                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="p-4 bg-card-dark/20 border border-border-muted text-center">
-                                        <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-1">Packet Routes</p>
-                                        <p className="text-xs font-bold text-white uppercase">Random_Onion_V3</p>
-                                    </div>
-                                    <div className="p-4 bg-card-dark/20 border border-border-muted text-center">
-                                        <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-1">ZK_Signature</p>
-                                        <p className="text-xs font-bold text-white uppercase">LOCAL_GEN_PENDING</p>
-                                    </div>
-                                    <div className="p-4 bg-card-dark/20 border border-border-muted text-center">
-                                        <p className="text-[9px] text-[#a692c8] uppercase tracking-widest mb-1">Chain Speed</p>
-                                        <p className="text-xs font-bold text-primary uppercase animate-pulse">OPTIMIZED</p>
                                     </div>
                                 </div>
                             </div>

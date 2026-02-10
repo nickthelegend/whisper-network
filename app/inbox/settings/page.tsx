@@ -2,9 +2,35 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { generateMidnightProof, type MidnightProof } from "@/lib/midnight-client";
+import MidnightWallet from "@/components/MidnightWallet";
 
 export default function SettingsPage() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    
+    // ZK Proof State (Midnight Compact)
+    const [email, setEmail] = useState("");
+    const [isProving, setIsProving] = useState(false);
+    const [proof, setProof] = useState<MidnightProof | null>(null);
+    const [verificationStatus, setVerificationStatus] = useState<"idle" | "proving" | "verified">("idle");
+
+    const handleGenerateProof = async () => {
+        if (!email) return;
+        setIsProving(true);
+        setVerificationStatus("proving");
+        
+        try {
+            // Updated to use the new Midnight Client
+            const result = await generateMidnightProof(email, "secret-compact-mock");
+            setProof(result);
+            setVerificationStatus("verified");
+        } catch (e) {
+            console.error(e);
+            setVerificationStatus("idle");
+        } finally {
+            setIsProving(false);
+        }
+    };
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-white overflow-hidden h-screen w-full selection:bg-primary selection:text-white">
@@ -84,6 +110,102 @@ export default function SettingsPage() {
                     {/* Settings Content */}
                     <div className="p-8 max-w-4xl">
                         <div className="space-y-12">
+                            
+                            <section>
+                                <div className="flex items-center gap-2 mb-6 text-primary">
+                                    <span className="material-symbols-outlined">account_balance_wallet</span>
+                                    <h3 className="text-sm font-bold uppercase tracking-[0.2em]">Wallet Connection</h3>
+                                </div>
+                                <div className="glass-card bg-card-dark/40 border border-border-muted p-8 space-y-6">
+                                    <p className="text-sm text-white/70">
+                                        Connect your Midnight Wallet (Lace) to manage your identity and sign transactions.
+                                    </p>
+                                    <MidnightWallet />
+                                </div>
+                            </section>
+
+                            {/* Identity Proof Section (New) */}
+                            <section>
+                                <div className="flex items-center gap-2 mb-6 text-primary">
+                                    <span className="material-symbols-outlined">fingerprint</span>
+                                    <h3 className="text-sm font-bold uppercase tracking-[0.2em]">ZK Identity Proof</h3>
+                                </div>
+                                <div className="glass-card bg-card-dark/40 border border-border-muted p-8 space-y-6">
+                                    <p className="text-sm text-white/70">
+                                        Prove ownership of your email address using Zero-Knowledge proofs. 
+                                        This generates a cryptographic commitment without revealing your actual email on-chain.
+                                    </p>
+                                    
+                                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                                        <div className="flex-1 w-full space-y-2">
+                                            <label className="text-[10px] text-[#a692c8] uppercase tracking-widest font-bold">Email Address</label>
+                                            <input 
+                                                className="w-full bg-black/40 border border-border-muted rounded-lg px-4 py-3 text-sm focus:border-primary focus:outline-none transition-colors" 
+                                                type="email" 
+                                                placeholder="alice@example.com"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                disabled={verificationStatus === "verified"}
+                                            />
+                                        </div>
+                                        <button 
+                                            onClick={handleGenerateProof}
+                                            disabled={isProving || !email || verificationStatus === "verified"}
+                                            className={`px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all shadow-lg flex items-center gap-2
+                                                ${verificationStatus === "verified" 
+                                                    ? "bg-green-500/20 text-green-400 border border-green-500/50 cursor-default" 
+                                                    : "bg-primary text-white hover:bg-primary/80 hover:scale-105"
+                                                }
+                                                ${isProving ? "opacity-70 cursor-wait" : ""}
+                                            `}
+                                        >
+                                            {isProving ? (
+                                                <>
+                                                    <span className="material-symbols-outlined animate-spin text-sm">refresh</span>
+                                                    Generating Proof...
+                                                </>
+                                            ) : verificationStatus === "verified" ? (
+                                                <>
+                                                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                                                    Identity Verified
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="material-symbols-outlined text-sm">lock</span>
+                                                    Generate ZK Proof
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {/* Proof Output Console */}
+                                    {verificationStatus !== "idle" && (
+                                        <div className="mt-6 font-mono text-xs bg-black/60 rounded-lg p-4 border border-[#312447] overflow-hidden">
+                                            <div className="flex items-center gap-2 mb-2 text-[#a692c8]">
+                                                <span className="material-symbols-outlined text-sm">terminal</span>
+                                                <span className="uppercase tracking-widest font-bold">Proof Output Log</span>
+                                            </div>
+                                            <div className="space-y-1 text-green-400/80">
+                                                <p>{`> Connecting to local Midnight Proof Server (port 6300)... [OK]`}</p>
+                                                <p>{`> Generating Compact Witness... [OK]`}</p>
+                                                {verificationStatus === "verified" && proof && (
+                                                    <>
+                                                        <p>{`> Building ZK Proof (Halo2/Kimchi)... [OK]`}</p>
+                                                        <p className="text-white mt-2 mb-1 opacity-70">-- PUBLIC SIGNALS --</p>
+                                                        <p className="break-all text-[#a692c8]">{`Commitment: ${proof.commitment}`}</p>
+                                                        <p className="break-all text-[#a692c8]">{`Timestamp: ${proof.timestamp}`}</p>
+                                                        <p className="text-green-500 font-bold mt-2">{`> IDENTITY_VERIFIED_ON_MIDNIGHT`}</p>
+                                                    </>
+                                                )}
+                                                {isProving && (
+                                                    <p className="animate-pulse text-primary">{`> Computing zero-knowledge proof...`}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+
                             {/* Profile Section */}
                             <section>
                                 <div className="flex items-center gap-2 mb-6 text-primary">

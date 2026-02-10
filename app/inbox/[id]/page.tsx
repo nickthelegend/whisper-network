@@ -2,9 +2,35 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { getMidnight } from "@/lib/midnightConnector";
 
 export default function MessageView() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isDecrypted, setIsDecrypted] = useState(false);
+    const [isDecrypting, setIsDecrypting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleDecrypt = async () => {
+        setIsDecrypting(true);
+        setError(null);
+        try {
+            // 1. Verify Wallet Connection
+            try {
+                getMidnight();
+            } catch (e) {
+                throw new Error("Wallet not connected. Please connect in Settings to decrypt.");
+            }
+
+            // 2. Simulate Decryption Delay (Hardware Enclave)
+            await new Promise(r => setTimeout(r, 1500));
+            
+            setIsDecrypted(true);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsDecrypting(false);
+        }
+    };
 
     return (
         <div className="bg-background-dark font-mono text-white overflow-hidden h-screen w-full selection:bg-primary selection:text-white">
@@ -34,7 +60,7 @@ export default function MessageView() {
                             </div>
                             <div className="relative">
                                 <div className="w-10 h-10 rounded-full border-2 border-primary p-0.5 shadow-[0_0_10px_rgba(124,59,237,0.4)]">
-                                    <img alt="User Profile" className="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpjoG9GjFxc0hsmm_YYCP5zjlC4tlfY2oFWDd3p3kOL76TdDqn7yJkIcl4Xp52ocFWkxfKnasiwX9xLQfBStsxvcnmuay7Ma8uvvKxzycxfEiBtGPsetdZ6kPoF-9_tmnUYivK3wq5eeRCoN3GWk9R3t2wGjOlkq1nfVxzg2ovQfntMhH-r5VH6AmRFD7vAQ5YEst2aJdQQcSRsu1oq-CaTe0VzCjNiGK7a-07lpAP2kqh0r_sk6NNVnNm3AmyoNHCbp9iFRNLC9Q" />
+                                    <img alt="User Profile" className="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBEevWT4Z0pk7H5pPH3aC4HZCsNdbpfoouMVIFvabV82oGLNsBkZ3Wi8vm2fBuEhr9cqTgojf4CM39d_gagyMsDqIOnShTuTyIJvrL1qEMdEjkNWOtcxCzZhinduAp6HFmxCKbKvVscUQQj6EKofbItp97Y8EOBR0buDxJ2jCuipfBtCitjpGmAUwd-TeKCLJCeR5alCXVcmJQvd0aHeDu8fm35SFOeEELEO18nCh3rXYcEBg8VOk5jFJxN2HOKYMdZtsteFik8ao" />
                                 </div>
                             </div>
                         </div>
@@ -143,20 +169,62 @@ export default function MessageView() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="space-y-6 text-sm leading-relaxed text-[#a692c8] font-mono">
-                                        <p className="text-white">Greetings Admin,</p>
-                                        <p>We are ready to proceed with the <span className="text-primary">Midnight Network</span> integration phase. This upgrade will move our entire communication layer to a fully decentralized protocol, ensuring that no single entity can intercept or censor our packet flows.</p>
-                                        <p>By leveraging <span className="text-white font-bold">Zero-Knowledge Proofs (ZKP)</span> and decentralized metadata protection, Whisper will now provide true anonymity. Unlike legacy systems, our encryption keys are generated locally and never leave the hardware enclave.</p>
-                                        <div className="p-4 bg-black/40 border-l-2 border-primary text-xs text-primary/90 space-y-1">
+                                    
+                                    {/* Encrypted/Decrypted Content Area */}
+                                    <div className={`space-y-6 text-sm leading-relaxed font-mono relative transition-all duration-700 ${isDecrypted ? "text-[#a692c8]" : "text-transparent select-none"}`}>
+                                        
+                                        {!isDecrypted && (
+                                            <div className="absolute inset-0 flex items-center justify-center z-20 backdrop-blur-sm bg-black/40 rounded-xl border border-border-muted">
+                                                <div className="text-center space-y-4">
+                                                    <span className="material-symbols-outlined text-4xl text-primary animate-pulse">lock</span>
+                                                    <div>
+                                                        <h3 className="text-white font-bold uppercase tracking-widest text-xs mb-1">Encrypted Payload</h3>
+                                                        <p className="text-[#a692c8] text-[10px] uppercase tracking-widest">Midnight_Hardware_Enclave_Required</p>
+                                                    </div>
+                                                    
+                                                    {error && (
+                                                        <div className="text-red-400 text-[10px] font-bold uppercase tracking-widest border border-red-400/20 bg-red-400/10 p-2 rounded">
+                                                            {error}
+                                                        </div>
+                                                    )}
+
+                                                    <button 
+                                                        onClick={handleDecrypt}
+                                                        disabled={isDecrypting}
+                                                        className="px-6 py-2 bg-primary text-white text-[10px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(124,59,237,0.3)] hover:scale-105 active:scale-95 transition-all rounded"
+                                                    >
+                                                        {isDecrypting ? "Decrypting..." : "Decrypt_Message"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <p className={`${!isDecrypted && "blur-sm opacity-50 bg-clip-text bg-gradient-to-r from-gray-700 to-gray-500"}`}>
+                                            Greetings Admin,
+                                        </p>
+                                        <p className={`${!isDecrypted && "blur-sm opacity-50 bg-clip-text bg-gradient-to-r from-gray-700 to-gray-500"}`}>
+                                            We are ready to proceed with the <span className={isDecrypted ? "text-primary" : ""}>Midnight Network</span> integration phase. This upgrade will move our entire communication layer to a fully decentralized protocol, ensuring that no single entity can intercept or censor our packet flows.
+                                        </p>
+                                        <p className={`${!isDecrypted && "blur-sm opacity-50 bg-clip-text bg-gradient-to-r from-gray-700 to-gray-500"}`}>
+                                            By leveraging <span className={isDecrypted ? "text-white font-bold" : ""}>Zero-Knowledge Proofs (ZKP)</span> and decentralized metadata protection, Whisper will now provide true anonymity. Unlike legacy systems, our encryption keys are generated locally and never leave the hardware enclave.
+                                        </p>
+                                        
+                                        <div className={`p-4 bg-black/40 border-l-2 border-primary text-xs text-primary/90 space-y-1 ${!isDecrypted && "blur-sm opacity-30"}`}>
                                             <p>[SYSTEM_VERIFICATION]</p>
                                             <p>ENCRYPTION: End-to-End (ChaCha20-Poly1305)</p>
                                             <p>ROUTING: Onion-V3 / Mesh Hybrid</p>
                                             <p>PRIVACY_LEVEL: Opaque</p>
                                         </div>
-                                        <p>Please review the attached integration manifest. Once confirmed, we will begin the migration of the primary relay nodes to the decentralized mesh. The privacy features we've discussed—including metadata stripping and stealth addresses—are now active in the sandbox environment.</p>
-                                        <p>Standing by for your signature to initiate deployment.</p>
-                                        <p className="pt-6 text-white font-bold">-- ALICE --</p>
+                                        
+                                        <p className={`${!isDecrypted && "blur-sm opacity-50 bg-clip-text bg-gradient-to-r from-gray-700 to-gray-500"}`}>
+                                            Please review the attached integration manifest. Once confirmed, we will begin the migration of the primary relay nodes to the decentralized mesh. The privacy features we've discussed—including metadata stripping and stealth addresses—are now active in the sandbox environment.
+                                        </p>
+                                        <p className={`${!isDecrypted && "blur-sm opacity-50 bg-clip-text bg-gradient-to-r from-gray-700 to-gray-500"}`}>
+                                            Standing by for your signature to initiate deployment.
+                                        </p>
+                                        <p className={`pt-6 font-bold ${isDecrypted ? "text-white" : "blur-sm opacity-50"}`}>-- ALICE --</p>
                                     </div>
+                                    
                                     <div className="mt-12 pt-8 border-t border-border-muted">
                                         <h4 className="text-[10px] font-bold text-white uppercase tracking-widest mb-4">Attached_Manifests</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
