@@ -119,11 +119,64 @@ Communication in Whisper is protected by three layers of privacy:
 3. **Sign**: User signs the packet hash via Lace.
 4. **Broadcast**: Submit proof + ciphertext to Relayer.
 
+## Compact Smart Contract Development (v0.20+)
+
+Modern Compact contracts use a flat structure (no `contract` block) with `export` keywords for ledger state and entry points.
+
+### Language Basics
+- **Pragma**: Always specify `pragma language_version 0.20;` (or latest).
+- **Standard Library**: Always `import CompactStandardLibrary;` to get `Map`, `Counter`, `persistentHash`, etc.
+- **Types**: 
+    - `Field`: Native field element.
+    - `Bytes<N>`: Fixed-size byte array (mapped to `Uint8Array` in TS).
+    - `Boolean`: Unified boolean type.
+    - `Opaque<"name">`: User-defined private data types handled as hashes.
+
+### Ledger State (Public)
+Public state is declared with `export ledger`:
+```typescript
+export ledger registry: Map<Bytes<32>, Bytes<32>>;
+export ledger counts: Counter;
+export ledger owner: Field;
+```
+
+### Circuits (Zk Entry Points)
+Functions accessible from the DApp are `export circuit`:
+```xml
+export circuit register(handle_hash: Bytes<32>, secret: Field): [] {
+    // 1. Logic
+    assert(!registry.member(disclose(handle_hash)), "Taken");
+    
+    // 2. State Updates (MUST use disclose)
+    registry.insert(disclose(handle_hash), disclose(persistentHash<Field>(secret)));
+}
+```
+
+### Privacy & Disclosures (CRITICAL)
+- **`disclose(value)`**: Explicitly reveals a value to the public ledger. Compilation fails if ledger operations (keys/values) are not disclosed.
+- **`persistentHash<T>(value)`**: Securely hashes data. Takes a type parameter. Returns `Bytes<32>`.
+- **`witness`**: Declares a local function implemented in TypeScript for interacting with private data (e.g., retrieving a secret key).
+
+### Compilation Checklist
+1. Ensure all `ledger` keys and values are wrapped in `disclose()`.
+2. Use `Bytes<32>` for hash storage to avoid compilation panics related to "synthesis decodes".
+3. Avoid `Opaque<"string">` in `persistentHash` if it causes "compressed value" decoder errors; prefer passing `Bytes<32>` directly.
+4. Run `compact compile <source> <target_dir>` to generate TypeScript artifacts.
+
+## Deployment & Interaction Flow
+1. **Compile**: `compact compile contracts/MyContract.compact managed/`
+2. **Instantiate**: `const contract = new MyContract({});`
+3. **Setup Providers**: Configure `zkConfigProvider`, `proofProvider`, `publicDataProvider`, etc.
+4. **Deploy/Join**: Use `MidnightSetupAPI` (or equivalent SDK wrapper) to deploy the contract and get an `api` object.
+5. **Call Circuits**: `await api.myCircuit(arg1, arg2);`
+
+---
+
 ## Project Structure
 - `hooks/useMidnightWallet.ts`: Unified hook for connection and state.
 - `hooks/useMidnightContract.ts`: Hook for deploying and joining contracts.
 - `lib/providers.ts`: Centralized provider configuration.
 - `lib/whisper.ts`: Identity and naming utilities.
-- `contracts/WhisperRegistry.compact`: Compact contract for identity management.
+- `contracts/WhisperDNS.compact`: Main identity management logic.
+- `managed/`: Compiler generated artifacts (ZKIR, TS types).
 - `.midnight/KNOWLEDGE.md`: This knowledge base.
-- `.midnight/More.md`: Extended SDK documentation.
