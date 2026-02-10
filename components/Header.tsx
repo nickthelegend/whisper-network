@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMidnightWallet } from "@/hooks/useMidnightWallet";
 
 export default function Header() {
-    const { connectWallet, disconnectWallet, isConnected, walletState } = useMidnightWallet();
+    const { connectWallet, disconnectWallet, isConnected, walletState, isLoading } = useMidnightWallet();
 
     const handleConnect = async () => {
         try {
@@ -13,6 +13,8 @@ export default function Header() {
             console.error("Connection failed in Header:", err);
         }
     };
+
+    const address = walletState?.state?.address;
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 glass-nav">
@@ -34,8 +36,8 @@ export default function Header() {
                             <div className="hidden lg:block text-right">
                                 <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Connected</p>
                                 <p className="text-[9px] text-white/50 font-mono">
-                                    {walletState?.address && typeof walletState.address === 'string' && walletState.address.length > 10
-                                        ? `${walletState.address.slice(0, 6)}...${walletState.address.slice(-4)}`
+                                    {address && typeof address === 'string' && address.length > 10
+                                        ? `${address.slice(0, 6)}...${address.slice(-4)}`
                                         : 'Wallet Active'}
                                 </p>
                             </div>
@@ -49,9 +51,10 @@ export default function Header() {
                     ) : (
                         <button
                             onClick={handleConnect}
-                            className="bg-primary/10 border border-primary/50 text-primary px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-primary hover:text-white transition-all shadow-[0_0_10px_rgba(124,59,237,0.2)]"
+                            disabled={isLoading}
+                            className="bg-primary/10 border border-primary/50 text-primary px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-primary hover:text-white transition-all shadow-[0_0_10px_rgba(124,59,237,0.2)] disabled:opacity-50"
                         >
-                            Connect Wallet
+                            {isLoading ? "Connecting..." : "Connect Wallet"}
                         </button>
                     )}
                 </div>
