@@ -7,7 +7,9 @@ import { getWhisperAddress } from "@/lib/whisper";
 
 import { fetchRealMessages, type WhisperMessage } from "@/lib/mailbox";
 
-export default function InboxPage() {
+import dynamic from "next/dynamic";
+
+function InboxPageContent() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const { walletState, isConnected } = useMidnightWallet();
     const [messages, setMessages] = useState<WhisperMessage[]>([]);
@@ -238,4 +240,12 @@ export default function InboxPage() {
             </div>
         </div>
     );
+}
+
+const DynamicInboxPage = dynamic(() => Promise.resolve(InboxPageContent), {
+    ssr: false,
+});
+
+export default function InboxPage() {
+    return <DynamicInboxPage />;
 }

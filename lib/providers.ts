@@ -1,12 +1,15 @@
-import { FetchZkConfigProvider } from "@midnight-ntwrk/midnight-js-fetch-zk-config-provider";
-import { httpClientProofProvider } from "@midnight-ntwrk/midnight-js-http-client-proof-provider";
-import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-public-data-provider";
-import { levelPrivateStateProvider } from "@midnight-ntwrk/midnight-js-level-private-state-provider";
 import type { MidnightSetupContractProviders } from "@meshsdk/midnight-setup";
 
 export async function setupProviders(): Promise<MidnightSetupContractProviders> {
+    // Dynamic imports to prevent top-level Midnight SDK errors during initial load
+    const { FetchZkConfigProvider } = await import("@midnight-ntwrk/midnight-js-fetch-zk-config-provider");
+    const { httpClientProofProvider } = await import("@midnight-ntwrk/midnight-js-http-client-proof-provider");
+    const { indexerPublicDataProvider } = await import("@midnight-ntwrk/midnight-js-indexer-public-data-provider");
+    const { levelPrivateStateProvider } = await import("@midnight-ntwrk/midnight-js-level-private-state-provider");
+
     // @ts-ignore
     const wallet = window.midnight?.mnLace;
+    // ...
     if (!wallet) {
         throw new Error("Please install Lace Beta Wallet for Midnight Network");
     }

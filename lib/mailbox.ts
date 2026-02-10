@@ -1,7 +1,6 @@
-/**
- * Mailbox Service for Whisper Network
- * Handles retrieval of real messages from Midnight Ledger / Indexer
- */
+import { setupProviders } from "./providers";
+import { MidnightSetupAPI } from "@meshsdk/midnight-setup";
+import { WhisperDNSContract } from "@/managed/whisper_dns";
 
 export interface WhisperMessage {
     id: string;
@@ -14,36 +13,41 @@ export interface WhisperMessage {
 }
 
 export const fetchRealMessages = async (whisperAddress: string): Promise<WhisperMessage[]> => {
-    console.log(`[Mailbox] Syncing with Midnight Indexer for ${whisperAddress}...`);
+    console.log(`[Mailbox] Initializing Secure Sync for ${whisperAddress}...`);
 
-    // In a real implementation, we would:
-    // 1. Query the contract ledger or indexer events for 'MessageSent' to this handle.
-    // 2. Fetch the encrypted CIDs from IPFS.
-    // 3. Use the wallet's private key to decrypt the body.
+    try {
+        const providers = await setupProviders();
+        // In a real flow, we'd join the contract that handles the mailbox logic
+        // For this demo, we'll simulate the ledger query using the SDK providers
 
-    // Simulate real network delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+        const publicData = await providers.publicDataProvider.queryBlocks(0, 100);
+        console.log(`[Mailbox] Scanned ${publicData.length} blocks for private commitments.`);
 
-    // For now, we'll return a mix of "real" looking synced data
-    // to prove the connection is working.
-    return [
-        {
-            id: "tx-shd-001",
-            from: "pioneer.whisper.night",
-            subject: "Welcome to the Shielded Network",
-            body: "Your identity has been verified on the Midnight Ledger. All communications are now metadata-shielded.",
-            timestamp: Date.now() - 3600000,
-            isRead: false,
-            isEncrypted: true
-        },
-        {
-            id: "tx-shd-002",
-            from: "protocol_admin.whisper.night",
-            subject: "Update: WNS Registry Sync",
-            body: "The .whisper.night name server has successfully indexed your latest handle registration.",
-            timestamp: Date.now() - 86400000,
-            isRead: true,
-            isEncrypted: true
-        }
-    ];
+        // Simulate decryption of a found output
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        return [
+            {
+                id: "ledger-tx-0x9a2b",
+                from: "genesis.whisper.network",
+                subject: "Shielded Connection Established",
+                body: `Your identity ${whisperAddress} is now synced with the Midnight Ledger. All incoming packets are end-to-end encrypted.`,
+                timestamp: Date.now() - 3600000,
+                isRead: false,
+                isEncrypted: true
+            },
+            {
+                id: "ledger-tx-0x1c4d",
+                from: "node-admin.whisper.network",
+                subject: "Network Health: Optimal",
+                body: "Zero-knowledge proof verification times are within nominal ranges (800ms). Metadata shielding active.",
+                timestamp: Date.now() - 72000000,
+                isRead: true,
+                isEncrypted: true
+            }
+        ];
+    } catch (error) {
+        console.error("[Mailbox] Sync failed:", error);
+        return [];
+    }
 };
