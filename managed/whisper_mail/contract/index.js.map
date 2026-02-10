@@ -1,7 +1,7 @@
 {
   "version": 3,
   "file": "index.js",
-  "sourceRoot": "../../",
+  "sourceRoot": "../../../",
   "sources": ["contracts/WhisperMail.compact", "compiler/standard-library.compact"],
   "names": [],
   "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;;;;MAYA,AAAA,YAoBC;;;;;cAnBG,oBAA6B;cAC7B,uBAAgC;cAChC,aAAsB;cACtB,6BAAsC;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;yCAHtC,oBAA6B,+BAC7B,uBAAgC,+BAChC,aAAsB,+BACtB,6BAAsC;;;;;;;;;8CAHtC,oBAA6B;8CAC7B,uBAAgC;8CAChC,aAAsB;8CACtB,6BAAsC;;;OAgBzC;MAED,AAAA,iBAEC;;;;;cAFgC,aAAsB;;;;;;;;;;;;;;;;;;yCAAtB,aAAsB;;;;;;;;;mDAAtB,aAAsB;;;OAEtD;;;;;;GACA;EArCD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAIA;;;;;;;;;;yEAAoD;IAIpD;;;;;;;;;;yEAAuD;;;;;;;GA6BtD;ECWD,AAAA,kBAAiC;oEAAA;;;EDtCjC,AAAA,wBAA2C;;0DAA3C,qBAA2C;;;;;;;;;;;;;;GAAA;EAE3C,AAAA,eAoBC;;kBAnBG,oBAA6B;kBAC7B,uBAAgC;kBAChC,aAAsB;kBACtB,6BAAsC;;0CAGtB,6BAA2B;;;;IAG3C;;;;;;;;;;2HACa,aAAW;;;2HACX,uBAAqB;;;wEAFrB;UAMb,KAAc,qDAEV;;;;;;;;;;;;;;+JAA+B,uBAAqB;;;yIAAtC;;IAFlB;;;;;;;;;;2HACa,uBAAqB;;;2HADlC,KAAc;;;wEAAA;;GAIjB;EAED,AAAA,oBAEC,4BAFgC,aAAsB;mCAC5C;;;;;;;;;;;;;;8HAA+B,aAAW;;;wGAA5B;GACxB;;;;;;;;;;;;;;;;;;;;IAhCD;;;;;uCAAA;;;;;;;;;;;;;;;;4GAAoD;;;;;;uCAApD;;;;;;;;;;;;4GAAoD;;;;;;;;;;;;;;uCAApD;;;;;;;;;;;;;;;4GAAoD;;;;;;;;;;;;;;uCAApD;;;;;;;;;;;;;;;;;4GAAoD;;;;;;;;;KAAA;IAIpD;;;;;uCAAA;;;;;;;;;;;;;;;;4GAAuD;;;;;;uCAAvD;;;;;;;;;;;;4GAAuD;;;;;;;;;;;;;;uCAAvD;;;;;;;;;;;;;;;4GAAuD;;;;;;;;;;;;;;uCAAvD;;;;;;;;;;;;;;;;;4GAAuD;;;;;;;;;KAAA;;;;;;;;;;;;"

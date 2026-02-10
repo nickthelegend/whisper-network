@@ -13,16 +13,23 @@ export ledger verified_identities: Map<Bytes<32>, Boolean>;
 // Register a handle
 export circuit register_handle(
     handle_hash: Bytes<32>,
-    address_commitment: Bytes<32>,
+    ownership_commitment: Bytes<32>,
     encryption_pubkey: Field
 ): [] {
     // 1. Verify handle is not taken
     assert(!handles.member(disclose(handle_hash)), "Handle already taken");
 
     // 2. Write to ledger
-    handles.insert(disclose(handle_hash), disclose(address_commitment));
+    handles.insert(disclose(handle_hash), disclose(ownership_commitment));
     public_keys.insert(disclose(handle_hash), disclose(encryption_pubkey));
-    verified_identities.insert(disclose(address_commitment), disclose(true));
+    verified_identities.insert(disclose(ownership_commitment), disclose(true));
+}
+
+// Ownership verification helper
+witness get_secret_key(): Bytes<32>;
+
+export circuit verify_owner(handle_hash: Bytes<32>): [] {
+    assert(handles.lookup(disclose(handle_hash)) == persistentHash<Bytes<32>>(get_secret_key()), "Not the owner of this handle");
 }
 
 // Queries

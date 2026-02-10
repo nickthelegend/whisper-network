@@ -1,0 +1,37 @@
+pragma language_version 0.20;
+import CompactStandardLibrary;
+
+// Map: handle_hash -> message_count
+export ledger message_counts: Map<Bytes<32>, Field>;
+
+// Map: message_cid -> recipient_handle_hash
+// For v1, recipients scan this map to find messages matching their handle_hash
+export ledger inbox_entries: Map<Bytes<32>, Bytes<32>>;
+
+witness get_sender_secret_key(): Bytes<32>;
+
+export circuit send_message(
+    sender_handle_hash: Bytes<32>,
+    recipient_handle_hash: Bytes<32>,
+    message_cid: Bytes<32>,
+    sender_ownership_commitment: Bytes<32>
+): [] {
+    // 1. Verify sender ownership
+    assert(disclose(sender_ownership_commitment) == persistentHash<Bytes<32>>(get_sender_secret_key()), "Invalid sender ownership proof");
+
+    // 2. Insert message CID mapped to recipient
+    inbox_entries.insert(
+        disclose(message_cid),
+        disclose(recipient_handle_hash)
+    );
+
+    // 3. Increment message count
+    message_counts.insert(
+        disclose(recipient_handle_hash), 
+        message_counts.lookup(disclose(recipient_handle_hash)) + 1
+    );
+}
+
+export circuit get_message_count(handle_hash: Bytes<32>): Field {
+    return message_counts.lookup(disclose(handle_hash));
+}
