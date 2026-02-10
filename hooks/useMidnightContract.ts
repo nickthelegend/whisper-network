@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
-import { MidnightSetupAPI } from '@meshsdk/midnight-setup';
+import { MidnightSetupAPI, DeployedMidnightSetupAPI } from '@meshsdk/midnight-setup';
 import { setupProviders } from '../lib/providers';
 
 interface ContractHookReturn {
-    api: MidnightSetupAPI | null;
-    deployContract: (contractInstance: unknown) => Promise<MidnightSetupAPI>;
-    joinContract: (contractInstance: unknown, address: string) => Promise<MidnightSetupAPI>;
+    api: DeployedMidnightSetupAPI | null;
+    deployContract: (contractInstance: unknown) => Promise<DeployedMidnightSetupAPI>;
+    joinContract: (contractInstance: unknown, address: string) => Promise<DeployedMidnightSetupAPI>;
     getContractState: () => Promise<unknown>;
     getLedgerState: () => Promise<unknown>;
     isLoading: boolean;
@@ -13,7 +13,7 @@ interface ContractHookReturn {
 }
 
 export function useMidnightContract(): ContractHookReturn {
-    const [api, setApi] = useState<MidnightSetupAPI | null>(null);
+    const [api, setApi] = useState<DeployedMidnightSetupAPI | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

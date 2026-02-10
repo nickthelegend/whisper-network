@@ -25,18 +25,22 @@ function NameServerSetupContent() {
     const address = walletState?.state?.address || "0x000...";
 
     const handleDeployRegistry = async () => {
+        console.log("[Setup] Deploy button clicked");
         try {
             addLog("Initializing WhisperDNS Privacy Protocol...");
-            addLog("Generating Zero-Knowledge Commitment for Registry...");
+            console.log("[Setup] Starting deployment...");
 
             // Using the real (simulated) contract class
             const contract = new WhisperDNSContract({});
 
             addLog("Broadcasting ZK-Contract to Midnight Hub...");
             const newApi = await deployContract(contract);
+
+            console.log("[Setup] Deployment successful:", newApi.deployedContractAddress);
             setContractAddr(newApi.deployedContractAddress);
             addLog(`DNS Protocol Active at: ${newApi.deployedContractAddress}`);
         } catch (err: any) {
+            console.error("[Setup] Deployment failed:", err);
             addLog(`FATAL ERROR: ${err.message}`);
         }
     };
