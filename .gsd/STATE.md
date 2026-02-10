@@ -1,8 +1,20 @@
 # State
 
+## Project Metadata
+- **Name**: Whisper Network
+- **Goal**: Working Decentralized Email (v1.0)
+- **Status**: Initialized
+
 ## Last Session Summary
-Codebase mapping complete.
-- 4 Compact smart contracts identified
-- Initial architecture map created focusing on Midnight SDK integration
-- Technology stack documented (Next.js + Midnight + IPFS)
-- Technical debt identified regarding testing and relayer logic
+Project initialization complete.
+- Created `SPEC.md`, `ROADMAP.md`, `REQUIREMENTS.md`, and `RESEARCH.md`.
+- Mapped existing `WhisperRegistry` and Next.js frontend.
+- Identified index-based inbox pattern for Midnight.
+
+## Progress Overview
+- [x] Initial Codebase Mapping
+- [x] Project Initialization
+- [ ] Phase 1: Foundation & Contracts
+- [ ] Phase 2: Secure Sending Flow
+- [ ] Phase 3: Inbox & Polling
+- [ ] Phase 4: Polish & Testing
