@@ -24,12 +24,22 @@ export async function setupProviders(): Promise<MidnightSetupContractProviders> 
         const walletAPI = await connectFn.call(wallet, 'undeployed');
         console.log("[Providers] Connected to Wallet API.");
 
-        console.log("[Providers] Fetching wallet state and configuration...");
-        // @ts-ignore
-        const walletState = await (walletAPI.state ? walletAPI.state() : walletAPI.getShieldedAddresses());
-        // @ts-ignore
         const uris = await (wallet.serviceUriConfig ? wallet.serviceUriConfig() : walletAPI.getConfiguration());
         console.log("[Providers] Service URIs received:", uris);
+
+        // Connectivity check for the real prover server on 6300
+        const proverUri = uris.proverServerUri || "http://localhost:6300";
+        try {
+            console.log(`[Providers] Testing connection to Prover: ${proverUri}...`);
+            await fetch(proverUri, { mode: 'no-cors' });
+            console.log("%c[Providers] Prover status: ONLINE", "color: #10b981; font-weight: bold;");
+        } catch (e) {
+            console.warn(`[Providers] Prover status: UNREACHABLE at ${proverUri}`);
+        }
+
+        console.log("[Providers] Fetching wallet state...");
+        // @ts-ignore
+        const walletState = await (walletAPI.state ? walletAPI.state() : walletAPI.getShieldedAddresses());
 
         return {
             privateStateProvider: levelPrivateStateProvider({
