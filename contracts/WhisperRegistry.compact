@@ -4,8 +4,8 @@ import CompactStandardLibrary;
 // Map: handle_hash -> address_commitment
 export ledger handles: Map<Bytes<32>, Bytes<32>>;
 
-// Map: handle_hash -> encryption_pubkey
-export ledger public_keys: Map<Bytes<32>, Field>;
+// Map: handle_hash -> encryption_pubkey (65 bytes for uncompressed ECDSA)
+export ledger public_keys: Map<Bytes<32>, Bytes<65>>;
 
 // Map: address_commitment -> verified status
 export ledger verified_identities: Map<Bytes<32>, Boolean>;
@@ -14,7 +14,7 @@ export ledger verified_identities: Map<Bytes<32>, Boolean>;
 export circuit register_handle(
     handle_hash: Bytes<32>,
     ownership_commitment: Bytes<32>,
-    encryption_pubkey: Field
+    encryption_pubkey: Bytes<65>
 ): [] {
     // 1. Verify handle is not taken
     assert(!handles.member(disclose(handle_hash)), "Handle already taken");
@@ -33,7 +33,7 @@ export circuit verify_owner(handle_hash: Bytes<32>): [] {
 }
 
 // Queries
-export circuit resolve_key(handle_hash: Bytes<32>): Field {
+export circuit resolve_key(handle_hash: Bytes<32>): Bytes<65> {
     return public_keys.lookup(disclose(handle_hash));
 }
 

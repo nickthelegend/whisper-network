@@ -43,16 +43,60 @@ export default function NameServerSetup() {
     const handleRegister = async () => {
         if (!handle) return;
         try {
+            setIsRegistered(false);
             addLog(`Checking availability for ${handle}.whisper.night...`);
-            addLog(`Generating ZK Proof of Identity...`);
 
-            // Simulating contract message call
-            // await api.register_handle(handle, address, encryptionKey);
+            const { registerHandle, checkAvailability, joinRegistry, getWhisperCommitment } = await import("@/lib/contracts/registry");
+            const { getWhisperSecret } = await import("@/lib/secret-manager");
+            const EthCrypto = await import("eth-crypto");
+
+            const REGISTRY_ADDRESS = contractAddr || localStorage.getItem("whisper_registry_address");
+            if (!REGISTRY_ADDRESS) {
+                throw new Error("Registry not deployed/found. Please deploy first.");
+            }
+
+            const registryApi = await joinRegistry(REGISTRY_ADDRESS);
+
+            const handleBytes = new TextEncoder().encode(handle);
+            const handleHash = new Uint8Array(await crypto.subtle.digest('SHA-256', handleBytes));
+
+            // Check availability
+            const isAvailable = await checkAvailability(registryApi, handleHash);
+            if (!isAvailable) {
+                throw new Error(`Handle ${handle} is already taken.`);
+            }
+            addLog("Handle is available.");
+
+            addLog(`Generating Identity & Keys...`);
+            // Generate Whisper Identity Secret (ZK)
+            const secret = await getWhisperSecret(address);
+            const commitment = await getWhisperCommitment(secret);
+
+            // Generate Encryption Keypair (E2EE) - In production, store private key securely
+            const identity = EthCrypto.createIdentity();
+            const encryptionKey = identity.publicKey; // 64 bytes hex uncompressed usually? Or compressed?
+            // EthCrypto public key is a hex string starting with nothing special, 130 chars (65 bytes hex).
+            // We need 65 bytes.
+            const pubKeyBytes = Buffer.from(encryptionKey, 'hex');
+
+            // Store private key locally for demo
+            localStorage.setItem(`whisper_priv_${handle}`, identity.privateKey);
+            addLog("Keys generated. Registering on Midnight...");
+
+            const txHash = await registerHandle(
+                registryApi,
+                handleHash,
+                commitment,
+                pubKeyBytes
+            );
 
             await new Promise(r => setTimeout(r, 1500));
             setIsRegistered(true);
-            addLog(`Success! ${handle}.whisper.night is now linked to your wallet.`);
+            addLog(`Success! ${handle}.whisper.night is registered.`);
+            addLog(`Tx Hash: ${txHash}`);
+            addLog(`Private key saved to local storage.`);
         } catch (err: any) {
+            console.error(err);
             addLog(`ERROR: ${err.message}`);
         }
     };

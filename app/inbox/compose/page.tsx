@@ -32,79 +32,83 @@ export default function ComposePage() {
         try {
             setStatus("resolving");
             setLogs([]);
-            addLog("Checking WNS Registry for target...");
+            addLog("Checking Whisper Registry for target...");
 
-            // 1. Resolve Handle
-            if (recipient.endsWith(".whisper.night")) {
-                addLog(`Resolving ${recipient} via .whisper.night Name Server...`);
-                // Simulation of registry lookup
-                await new Promise(r => setTimeout(r, 800));
-                addLog("Target Encryption Key: Found [0x82f...a1]");
-            } else {
-                addLog("Warning: Direct address transmission. Metadata shielding recommended.");
+            // 1. Resolve Recipient Handle
+            const { resolveHandle, joinRegistry } = await import("@/lib/contracts/registry");
+            const { getWhisperCommitment, getWhisperSecret } = await import("@/lib/secret-manager");
+            const EthCrypto = await import("eth-crypto");
+
+            // For v1, we assume the registry address is globally known or in settings
+            const REGISTRY_ADDRESS = localStorage.getItem("whisper_registry_address") || "0000000000000000000000000000000000000000000000000000000000000001";
+            const registryApi = await joinRegistry(REGISTRY_ADDRESS);
+
+            const handleBytes = new TextEncoder().encode(recipient.replace(".whisper", ""));
+            const handleHash = new Uint8Array(await crypto.subtle.digest('SHA-256', handleBytes));
+
+            const recipientPubKey = await resolveHandle(registryApi, handleHash);
+
+            if (!recipientPubKey) {
+                throw new Error("Handle not found in registry.");
             }
+            addLog(`Recipient Key Found: ${recipientPubKey.substring(0, 10)}...`);
 
+            // 2. Encrypt Payload (E2EE)
             setStatus("encrypting");
-            addLog("Initializing Private Channel...");
+            addLog("Encrypting payload for secured transmission...");
 
-            // 2. Check Wallet Connection
-            if (!address) {
-                addLog("ERROR: Wallet not connected. Please connect in Settings.");
-                setStatus("error");
-                return;
-            }
-            addLog(`Identity Confirmed: ${whisperAddress}`);
-
-            // 2. Encrypt Message (End-to-End Encryption)
-            await new Promise(r => setTimeout(r, 800));
-            addLog(`Encrypting payload for recipient...`);
-            // Encryption ensures only the recipient can read it
-            const encryptedPayload = {
-                ciphertext: Buffer.from(body).toString("base64"), // In real: ECIES
-                iv: "shielded-iv",
-                mac: "shielded-mac"
+            const messagePayload = {
+                from: whisperAddress,
+                subject: subject,
+                body: body,
+                timestamp: Date.now()
             };
-            addLog("Shielded Encryption Complete.");
 
-            // 3. Generate ZK Proof (Midnight Network)
-            setStatus("proving");
-            addLog("Requesting ZK Proof from Midnight Proof Server...");
-            // Proof proves ownership of sender address without revealing it on ledger
-            const proof = await generateMidnightProof(whisperAddress, "sender-secret");
-            addLog(`ZK Proof Generated. ID: ${proof.commitment.substring(0, 10)}...`);
+            const encrypted = await EthCrypto.encryptWithPublicKey(
+                recipientPubKey,
+                JSON.stringify(messagePayload)
+            );
+            const encryptedStr = EthCrypto.cipher.stringify(encrypted);
+            addLog("Shielded Encryption: SUCCESS.");
 
-            // 4. Sign Transaction
+            // 3. Upload to IPFS
+            setStatus("proving"); // In UI this shows the proving stage starts
+            addLog("Uploading encrypted blob to IPFS...");
+            const { uploadToIPFS } = await import("@/lib/ipfs");
+            const cid = await uploadToIPFS({ payload: encryptedStr });
+            addLog(`IPFS Storage: SUCCESS (CID: ${cid.substring(0, 10)}...)`);
+
+            // 4. Generate ZK Proof & Submit to Ledger
             setStatus("signing");
-            addLog("Waiting for Secure Signature...");
-            // Real signing would happen here
-            addLog("Packet Signed. Metadata Shielding: Enabled.");
+            addLog("Generating ZK Proof of Identity Ownership...");
 
-            // 5. Submit to Relayer
+            const { joinMail, sendMessage } = await import("@/lib/contracts/mail");
+            const MAIL_ADDRESS = localStorage.getItem("whisper_mail_address") || "0000000000000000000000000000000000000000000000000000000000000002";
+            const mailApi = await joinMail(MAIL_ADDRESS);
+
+            const senderSecret = await getWhisperSecret(address!);
+            const senderCommitment = await getWhisperCommitment(senderSecret);
+
+            // Pass raw CID bytes (up to 64 bytes)
+            const cidBytes = new TextEncoder().encode(cid);
+
+            const senderHandleBytes = new TextEncoder().encode(whisperAddress.replace(".whisper.network", ""));
+            const senderHandleHash = new Uint8Array(await crypto.subtle.digest('SHA-256', senderHandleBytes));
+
             setStatus("relaying");
-            addLog("Broadcasting to Midnight Network Relayers...");
+            addLog("Submitting packet to Midnight Ledger...");
+            const txId = await sendMessage(
+                mailApi,
+                senderHandleHash,
+                handleHash,
+                cidBytes,
+                senderCommitment
+            );
 
-            const response = await fetch("/api/relayer", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    proof,
-                    publicSignals: proof.publicSignals,
-                    encryptedMessage: encryptedPayload,
-                    recipient,
-                    sender: whisperAddress // Send as whisper handle
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                setStatus("success");
-                setTxHash(result.txHash);
-                addLog(`Transmission Successful! All traces wiped.`);
-                addLog(`Tx Hash: ${result.txHash}`);
-            } else {
-                throw new Error(result.error || "Relayer failed");
-            }
+            setStatus("success");
+            setTxHash(txId);
+            addLog(`Transmission Successful! Message index anchored.`);
+            addLog(`Tx Hash: ${txId}`);
 
         } catch (error: any) {
             console.error(error);
