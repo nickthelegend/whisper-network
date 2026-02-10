@@ -1,60 +1,55 @@
-// Whisper Network - Identity & Email Verification
+// Whisper Network - .whisper.night Name Server
 // Built for Midnight Network using Compact Language
 
 contract WhisperRegistry {
 
     // Persistent State (Private Ledger)
     ledger {
-        // Map of Email Commitment -> Verification Status
-        // Commitment = Poseidon(secret_key)
-        field verified_identities<Field, Boolean>;
-
-        // Map of Handle -> Commitment
+        // Map of Handle (e.g., "alice") -> Shielded Address (Field/Commitment)
         field handles<String, Field>;
+
+        // Map of Handle -> Encryption Public Key (Field)
+        // Public Key is required for others to send encrypted mail
+        field public_keys<String, Field>;
+
+        // Map of Address -> Verification Status (Optional)
+        field verified_identities<Field, Boolean>;
     }
 
-    // Constructor
     constructor() {
-        // Initialize state (implicitly done by map defaults)
+        // Initialization
     }
 
-    // Circuit: Prove email ownership without revealing email
-    // This runs inside the ZK Proof Server (local)
-    circuit verify_email_ownership(
-        secret_key: Field,
-        public_commitment: Field
-    ): Boolean {
-        // In Compact, this generates a ZK constraint
-        // Ensure the provided secret matches the public commitment
-        return hash(secret_key) == public_commitment;
-    }
-
-    // Transition: Register Identity
-    // Publicly updates the ledger if the ZK proof is valid
-    export message register_identity(
-        secret_key: Field,
-        handle: String
+    // Transitional Logic: Claim a .whisper.night handle
+    export message register_handle(
+        handle: String,
+        address_commitment: Field,
+        encryption_pubkey: Field
     ) {
-        // Generate commitment locally
-        const commitment = hash(secret_key);
-
-        // Verify ZK circuit constraints
-        // This ensures the caller knows the secret for this commitment
-        verify(verify_email_ownership(secret_key, commitment));
-
-        // Update Ledger State
-        // Check if identity already exists
-        verify(!verified_identities[commitment]);
-        // Check if handle is taken
+        // 1. Verify handle is not taken
         verify(!handles.member(handle));
 
-        // Write to ledger
-        verified_identities[commitment] = true;
-        handles[handle] = commitment;
+        // 2. Optional: Verify handle format (Compact is limited in string ops)
+        // For now, we assume handle is the prefix (e.g. "alice" for "alice.whisper.night")
+
+        // 3. Write to ledger
+        handles[handle] = address_commitment;
+        public_keys[handle] = encryption_pubkey;
+        verified_identities[address_commitment] = true;
     }
 
-    // Getter: Check if handle is available (Public View)
-    export query is_handle_available(handle: String): Boolean {
+    // Query: Resolve handle to encryption key
+    export query resolve_key(handle: String): Field {
+        return public_keys[handle];
+    }
+
+    // Query: Resolve handle to address commitment
+    export query resolve_address(handle: String): Field {
+        return handles[handle];
+    }
+
+    // Query: Check availability
+    export query check_availability(handle: String): Boolean {
         return !handles.member(handle);
     }
 }

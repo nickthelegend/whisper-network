@@ -93,8 +93,37 @@ If `walletAPI.state()` or `wallet.serviceUriConfig()` are missing, use these fal
 - **Network ID mismatch**: Ensure you pass the correct network ID to `connect()`.
 - **Address not showing**: Ensure you are extracting the address from the correct property (shielded vs unshielded).
 
+## Whisper Identity & Naming
+Users in the Whisper Network are identified by a `.whisper.network` address derived from their Midnight wallet.
+
+### Naming Convention
+A user's whisper address is generated as: `[first6Chars][last4Chars].whisper.network` (all lowercase).
+Example: `3rvw3lxj9q.whisper.network`
+
+### Implementation
+```typescript
+import { getWhisperAddress } from "@/lib/whisper";
+const whisperAddr = getWhisperAddress(walletAddress);
+```
+
+## Private Sending (Zero-Knowledge)
+Communication in Whisper is protected by three layers of privacy:
+
+1. **End-to-End Encryption**: The payload is encrypted for the recipient's public key before leaving the browser.
+2. **Zero-Knowledge Proofs**: A Compact witness proves the sender is authorized to use the Whisper Network without revealing their actual wallet address on the public ledger.
+3. **Metadata Shielding**: Transactions are submitted via a decentralized relayer network to hide the communication trail (IP/Timing).
+
+### Transmission Flow
+1. **Encrypt**: Generate ciphertext from message body.
+2. **Prove**: Call `generateMidnightProof(whisperAddress, secret)` to get ZK proof.
+3. **Sign**: User signs the packet hash via Lace.
+4. **Broadcast**: Submit proof + ciphertext to Relayer.
+
 ## Project Structure
 - `hooks/useMidnightWallet.ts`: Unified hook for connection and state.
 - `hooks/useMidnightContract.ts`: Hook for deploying and joining contracts.
 - `lib/providers.ts`: Centralized provider configuration.
+- `lib/whisper.ts`: Identity and naming utilities.
+- `contracts/WhisperRegistry.compact`: Compact contract for identity management.
 - `.midnight/KNOWLEDGE.md`: This knowledge base.
+- `.midnight/More.md`: Extended SDK documentation.

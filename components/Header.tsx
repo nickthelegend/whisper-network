@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMidnightWallet } from "@/hooks/useMidnightWallet";
+import { getWhisperAddress } from "@/lib/whisper";
 
 export default function Header() {
     const { connectWallet, disconnectWallet, isConnected, walletState, isLoading } = useMidnightWallet();
@@ -15,6 +16,7 @@ export default function Header() {
     };
 
     const address = walletState?.state?.address;
+    const whisperAddress = getWhisperAddress(address);
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 glass-nav">
@@ -34,11 +36,9 @@ export default function Header() {
                     {isConnected ? (
                         <div className="flex items-center gap-3">
                             <div className="hidden lg:block text-right">
-                                <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Connected</p>
-                                <p className="text-[9px] text-white/50 font-mono">
-                                    {address && typeof address === 'string' && address.length > 10
-                                        ? `${address.slice(0, 6)}...${address.slice(-4)}`
-                                        : 'Wallet Active'}
+                                <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Whisper ID</p>
+                                <p className="text-[9px] text-white/50 font-mono truncate max-w-[120px]">
+                                    {whisperAddress}
                                 </p>
                             </div>
                             <button

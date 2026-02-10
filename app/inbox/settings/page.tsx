@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useMidnightWallet } from "@/hooks/useMidnightWallet";
+import { getWhisperAddress } from "@/lib/whisper";
 import { generateMidnightProof, type MidnightProof } from "@/lib/midnight-client";
 import MidnightWallet from "@/components/MidnightWallet";
 
 export default function SettingsPage() {
+    const { walletState } = useMidnightWallet();
+    const address = walletState?.state?.address;
+    const whisperAddress = getWhisperAddress(address);
+
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    
+
     // ZK Proof State (Midnight Compact)
     const [email, setEmail] = useState("");
     const [isProving, setIsProving] = useState(false);
@@ -18,7 +24,7 @@ export default function SettingsPage() {
         if (!email) return;
         setIsProving(true);
         setVerificationStatus("proving");
-        
+
         try {
             // Updated to use the new Midnight Client
             const result = await generateMidnightProof(email, "secret-compact-mock");
@@ -110,7 +116,7 @@ export default function SettingsPage() {
                     {/* Settings Content */}
                     <div className="p-8 max-w-4xl">
                         <div className="space-y-12">
-                            
+
                             <section>
                                 <div className="flex items-center gap-2 mb-6 text-primary">
                                     <span className="material-symbols-outlined">account_balance_wallet</span>
@@ -132,28 +138,28 @@ export default function SettingsPage() {
                                 </div>
                                 <div className="glass-card bg-card-dark/40 border border-border-muted p-8 space-y-6">
                                     <p className="text-sm text-white/70">
-                                        Prove ownership of your email address using Zero-Knowledge proofs. 
+                                        Prove ownership of your email address using Zero-Knowledge proofs.
                                         This generates a cryptographic commitment without revealing your actual email on-chain.
                                     </p>
-                                    
+
                                     <div className="flex flex-col md:flex-row gap-4 items-end">
                                         <div className="flex-1 w-full space-y-2">
                                             <label className="text-[10px] text-[#a692c8] uppercase tracking-widest font-bold">Email Address</label>
-                                            <input 
-                                                className="w-full bg-black/40 border border-border-muted rounded-lg px-4 py-3 text-sm focus:border-primary focus:outline-none transition-colors" 
-                                                type="email" 
+                                            <input
+                                                className="w-full bg-black/40 border border-border-muted rounded-lg px-4 py-3 text-sm focus:border-primary focus:outline-none transition-colors"
+                                                type="email"
                                                 placeholder="alice@example.com"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 disabled={verificationStatus === "verified"}
                                             />
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={handleGenerateProof}
                                             disabled={isProving || !email || verificationStatus === "verified"}
                                             className={`px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all shadow-lg flex items-center gap-2
-                                                ${verificationStatus === "verified" 
-                                                    ? "bg-green-500/20 text-green-400 border border-green-500/50 cursor-default" 
+                                                ${verificationStatus === "verified"
+                                                    ? "bg-green-500/20 text-green-400 border border-green-500/50 cursor-default"
                                                     : "bg-primary text-white hover:bg-primary/80 hover:scale-105"
                                                 }
                                                 ${isProving ? "opacity-70 cursor-wait" : ""}
@@ -223,18 +229,18 @@ export default function SettingsPage() {
                                             </button>
                                         </div>
                                         <div>
-                                            <h4 className="text-white font-bold text-lg">vitalik.eth</h4>
+                                            <h4 className="text-white font-bold text-lg">{whisperAddress}</h4>
                                             <p className="text-xs text-[#a692c8] uppercase tracking-widest">Mainframe Admin Access</p>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-[10px] text-[#a692c8] uppercase tracking-widest font-bold">Display Name</label>
-                                            <input className="w-full bg-black/40 border border-border-muted rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none" type="text" defaultValue="Vitalik Buterin" />
+                                            <input className="w-full bg-black/40 border border-border-muted rounded-lg px-4 py-2.5 text-sm focus:border-primary focus:outline-none" type="text" defaultValue={address ? `User ${address.slice(0, 4)}` : "Guest User"} />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] text-[#a692c8] uppercase tracking-widest font-bold">Whisper Handle</label>
-                                            <input className="w-full bg-black/40 border border-border-muted rounded-lg px-4 py-2.5 text-sm opacity-50 cursor-not-allowed" type="text" defaultValue="@vitalik" disabled />
+                                            <input className="w-full bg-black/40 border border-border-muted rounded-lg px-4 py-2.5 text-sm opacity-50 cursor-not-allowed" type="text" value={whisperAddress} disabled />
                                         </div>
                                     </div>
                                 </div>

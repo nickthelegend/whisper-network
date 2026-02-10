@@ -1,0 +1,64 @@
+// Whisper Network - .whisper.network Privacy Name Server
+// Built for Midnight Network using Compact Language
+
+contract WhisperDNS {
+
+    ledger {
+        // Map of hash(handle) -> address_commitment
+        // We hash the handle to hide which handles are being searched for in the raw ledger
+        field registry<Field, Field>;
+
+        // Map of address_commitment -> encryption_pubkey
+        field public_keys<Field, Field>;
+    }
+
+    constructor() {
+    }
+
+    // Circuit: Verify that the registrant owns the shielded address commitment
+    // without revealing the address itself.
+    circuit verify_ownership(
+        commitment: Field,
+        secret_key: Field
+    ): Boolean {
+        // In a real ZK circuit, this ensures hash(secret_key) == commitment
+        return hash(secret_key) == commitment;
+    }
+
+    // Register a .whisper.network domain
+    // handle: the desired name (e.g. "alice")
+    // commitment: hash of the user's shielded address
+    // pubkey: the public key used for message encryption
+    // signature_proof: (placeholder for ZK proof)
+    export message register(
+        handle: String,
+        commitment: Field,
+        pubkey: Field,
+        secret: Field
+    ) {
+        const handle_hash = hash(handle);
+
+        // 1. Ensure domain is available
+        verify(!registry.member(handle_hash));
+
+        // 2. Verify ZK ownership proof
+        // This ensures the caller knows the secret for this commitment
+        verify(verify_ownership(commitment, secret));
+
+        // 3. Register Domain
+        registry[handle_hash] = commitment;
+        public_keys[commitment] = pubkey;
+    }
+
+    // Query: Resolve handle to encryption public key
+    export query resolve_handle(handle: String): Field {
+        const handle_hash = hash(handle);
+        const commitment = registry[handle_hash];
+        return public_keys[commitment];
+    }
+
+    // Query: Check if a handle is already claimed
+    export query is_claimed(handle: String): Boolean {
+        return registry.member(hash(handle));
+    }
+}

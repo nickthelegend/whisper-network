@@ -1,10 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useMidnightWallet } from "@/hooks/useMidnightWallet";
+import { getWhisperAddress } from "@/lib/whisper";
+
+import { fetchRealMessages, type WhisperMessage } from "@/lib/mailbox";
 
 export default function InboxPage() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const { walletState, isConnected } = useMidnightWallet();
+    const [messages, setMessages] = useState<WhisperMessage[]>([]);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const address = walletState?.state?.address;
+    const whisperAddress = getWhisperAddress(address);
+
+    useEffect(() => {
+        if (isConnected && address) {
+            setIsSyncing(true);
+            fetchRealMessages(whisperAddress).then(msgs => {
+                setMessages(msgs);
+                setIsSyncing(false);
+            });
+        }
+    }, [isConnected, address, whisperAddress]);
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-white overflow-hidden h-screen w-full selection:bg-primary selection:text-white">
@@ -53,6 +73,10 @@ export default function InboxPage() {
                                 <span className="material-symbols-outlined group-hover:text-white transition-colors shrink-0">contacts</span>
                                 {!isSidebarCollapsed && <p className="text-sm font-medium group-hover:text-white transition-colors truncate">Contacts</p>}
                             </div>
+                            <Link href="/setup" className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-3 px-4"} py-3 rounded-xl text-[#a692c8] hover:bg-primary/10 hover:text-white transition-colors cursor-pointer group`}>
+                                <span className="material-symbols-outlined group-hover:text-primary transition-colors shrink-0">hub</span>
+                                {!isSidebarCollapsed && <p className="text-sm font-medium group-hover:text-white transition-colors truncate">Name Server</p>}
+                            </Link>
                             <Link href="/inbox/settings" className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-3 px-4"} py-3 rounded-xl text-[#a692c8] hover:bg-white/5 transition-colors cursor-pointer group`}>
                                 <span className="material-symbols-outlined group-hover:text-white transition-colors shrink-0">settings</span>
                                 {!isSidebarCollapsed && <p className="text-sm font-medium group-hover:text-white transition-colors truncate">Settings</p>}
@@ -92,112 +116,104 @@ export default function InboxPage() {
                             <div className="h-8 w-[1px] bg-[#312447] mx-2"></div>
                             <div className="flex items-center gap-3 pl-2">
                                 <div className="flex flex-col items-end hidden md:flex">
-                                    <span className="text-sm font-bold text-white">vitalik.eth</span>
-                                    <span className="text-[10px] text-primary font-mono uppercase tracking-widest font-bold">Premium Node</span>
+                                    <span className="text-sm font-bold text-white truncate max-w-[150px]">{whisperAddress}</span>
+                                    <span className="text-[10px] text-primary font-mono uppercase tracking-widest font-bold">Whisper Network</span>
                                 </div>
                                 <div className="w-10 h-10 rounded-full border-2 border-primary p-0.5">
-                                    <img className="w-full h-full rounded-full object-cover" alt="User avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBEevWT4Z0pk7H5pPH3aC4HZCsNdbpfoouMVIFvabV82oGLNsBkZ3Wi8vm2fBuEhr9cqTgojf4CM39d_gagyMsDqIOnShTuTyIJvrL1qEMdEjkNWOtcxCzZhinduAp6HFmxCKbKvVscUQQj6EKofbItp97Y8EOBR0buDxJ2jCuipfBtCitjpGmAUwd-TeKCLJCeR5alCXVcmJQvd0aHeDu8fm35SFOeEELEO18nCh3rXYcEBg8VOk5jFJxN2HOKYMdZtsteFik8ao" />
+                                    <img className="w-full h-full rounded-full object-cover" alt="User avatar" src={`https://api.dicebear.com/7.x/identicon/svg?seed=${address || 'default'}`} />
                                 </div>
                             </div>
                         </div>
                     </header>
 
-                    {/* Content Area */}
-                    <div className="flex-1 overflow-hidden flex flex-col">
-                        {/* Filters/Tabs */}
-                        <div className="px-8 pt-6 pb-2">
-                            <div className="flex border-b border-[#312447] gap-8">
-                                <a className="flex items-center gap-2 border-b-2 border-primary text-white pb-4 px-1 transition-all" href="#">
-                                    <span className="text-sm font-bold tracking-wide">All Messages</span>
-                                    <span className="bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded font-bold">248</span>
-                                </a>
-                                <a className="flex items-center gap-2 border-b-2 border-transparent text-[#a692c8] hover:text-white pb-4 px-1 transition-all" href="#">
-                                    <span className="text-sm font-medium tracking-wide">Unread</span>
-                                </a>
-                                <a className="flex items-center gap-2 border-b-2 border-transparent text-[#a692c8] hover:text-white pb-4 px-1 transition-all" href="#">
-                                    <span className="text-sm font-medium tracking-wide">Encrypted</span>
-                                </a>
-                                <a className="flex items-center gap-2 border-b-2 border-transparent text-[#a692c8] hover:text-white pb-4 px-1 transition-all" href="#">
-                                    <span className="text-sm font-medium tracking-wide">Spam</span>
-                                </a>
+                    {/* Messages Area */}
+                    <div className="flex-1 flex flex-col min-h-0">
+                        {/* Inbox Menu/Filters */}
+                        <div className="h-14 flex items-center px-8 border-b border-[#312447] bg-card-dark/20 flex-shrink-0">
+                            <div className="flex items-center gap-6">
+                                <button className="text-xs font-bold text-primary uppercase tracking-widest border-b-2 border-primary h-14 flex items-center">All Incoming</button>
+                                <button className="text-xs font-bold text-[#a692c8] hover:text-white transition-colors uppercase tracking-widest h-14 flex items-center">Unread</button>
+                                <button className="text-xs font-bold text-[#a692c8] hover:text-white transition-colors uppercase tracking-widest h-14 flex items-center">Starred</button>
+                                <button className="text-xs font-bold text-[#a692c8] hover:text-white transition-colors uppercase tracking-widest h-14 flex items-center">Encrypted</button>
+                            </div>
+                            <div className="ml-auto flex items-center gap-2">
+                                <span className="text-[10px] text-primary font-mono font-bold uppercase tracking-widest mr-2">{isSyncing ? "SYNCING..." : "LEDGER_SYNCED"}</span>
+                                <button
+                                    onClick={() => {
+                                        setIsSyncing(true);
+                                        fetchRealMessages(whisperAddress).then(msgs => {
+                                            setMessages(msgs);
+                                            setIsSyncing(false);
+                                        });
+                                    }}
+                                    className={`w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors ${isSyncing ? "animate-spin text-primary" : "text-[#a692c8]"}`}
+                                >
+                                    <span className="material-symbols-outlined text-sm">refresh</span>
+                                </button>
+                                <button className="w-8 h-8 flex items-center justify-center rounded-lg text-[#a692c8] hover:bg-white/5 transition-colors">
+                                    <span className="material-symbols-outlined text-sm">filter_list</span>
+                                </button>
                             </div>
                         </div>
 
                         {/* Message List */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-6 flex flex-col gap-3">
-                            {/* Message 1 */}
-                            <Link href="/inbox/1" className="inbox-glass-card rounded-xl p-4 flex items-center gap-4 group cursor-pointer border-l-4 border-l-primary">
-                                <div className="relative shrink-0">
-                                    <img className="w-12 h-12 rounded-full border border-primary/30" alt="Sender" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpjoG9GjFxc0hsmm_YYCP5zjlC4tlfY2oFWDd3p3kOL76TdDqn7yJkIcl4Xp52ocFWkxfKnasiwX9xLQfBStsxvcnmuay7Ma8uvvKxzycxfEiBtGPsetdZ6kPoF-9_tmnUYivK3wq5eeRCoN3GWk9R3t2wGjOlkq1nfVxzg2ovQfntMhH-r5VH6AmRFD7vAQ5YEst2aJdQQcSRsu1oq-CaTe0VzCjNiGK7a-07lpAP2kqh0r_sk6NNVnNm3AmyoNHCbp9iFRNLC9Q" />
-                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary border-2 border-card-dark rounded-full animate-pulse"></div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-white font-bold truncate">alice.eth</h3>
-                                            <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded border border-primary/20 font-bold">ZKP-ENCRYPTED</span>
+                        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 custom-scrollbar">
+                            {isSyncing && messages.length === 0 ? (
+                                [...Array(5)].map((_, i) => (
+                                    <div key={i} className="inbox-glass-card rounded-xl p-4 flex items-center gap-4 animate-pulse">
+                                        <div className="w-12 h-12 rounded-full bg-white/5"></div>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-4 w-1/4 bg-white/5 rounded"></div>
+                                            <div className="h-3 w-3/4 bg-white/5 rounded"></div>
                                         </div>
-                                        <span className="text-primary text-[10px] font-bold uppercase tracking-widest">New Message</span>
                                     </div>
-                                    <h4 className="text-white text-sm font-bold mb-1 truncate">Midnight Network Integration</h4>
-                                    <p className="text-[#a692c8] text-xs truncate font-medium">Greetings Admin, We are ready to proceed with the Midnight Network integration phase...</p>
+                                ))
+                            ) : messages.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full opacity-30 gap-4">
+                                    <span className="material-symbols-outlined text-6xl">inbox</span>
+                                    <p className="font-bold tracking-widest uppercase text-sm">No transmissions detected on the ledger</p>
                                 </div>
-                                <div className="flex flex-col items-end gap-2 shrink-0">
-                                    <span className="text-[#a692c8] text-xs font-medium">14:30 PM</span>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                        <button className="text-[#a692c8] hover:text-primary transition-colors">
-                                            <span className="material-symbols-outlined text-xl">star</span>
-                                        </button>
-                                        <button className="text-[#a692c8] hover:text-primary transition-colors">
-                                            <span className="material-symbols-outlined text-xl">archive</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </Link>
-
-                            {/* Message 2 */}
-                            <div className="inbox-glass-card rounded-xl p-4 flex items-center gap-4 group cursor-pointer opacity-80">
-                                <div className="relative shrink-0">
-                                    <img className="w-12 h-12 rounded-full border border-primary/30" alt="Sender" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlCulACsT579mdsFu3I9fLDALeulus2XlfrxqKvlObktU26wtt43KKEAcbKoQdjkJEFxXkEOqOdkTL2c-uIJDD4i0LHIJHiBwsEBWkaIzhiKIhdlKZv3qMz3ArziMCSmFkeh1kfpqD6hysOdyog3hAjgSBSt2xxKgQh0O5x67D95iVB5GhhfauA-yrpcz_STv1_ySOriWJHe00MkPhEa4cTk5uInTpxUDFImZqreWlHYUbfBRZ8rBjzc5EMuHcJ_Es8g6n2rYvDP0" />
-                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-card-dark rounded-full"></div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-white font-bold truncate">Nakamoto Satoshi</h3>
-                                            <span className="material-symbols-outlined text-primary text-sm">verified</span>
+                            ) : (
+                                messages.map((msg) => (
+                                    <Link
+                                        key={msg.id}
+                                        href={`/inbox/message/${msg.id}`}
+                                        className={`inbox-glass-card rounded-xl p-4 flex items-center gap-4 group cursor-pointer hover:bg-white/5 transition-all ${msg.isRead ? "opacity-70" : "opacity-100"}`}
+                                    >
+                                        <div className="relative shrink-0">
+                                            <img
+                                                className="w-12 h-12 rounded-full border border-primary/30"
+                                                alt="Sender"
+                                                src={`https://api.dicebear.com/7.x/identicon/svg?seed=${msg.from}`}
+                                            />
+                                            {!msg.isRead && (
+                                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary border-2 border-card-dark rounded-full animate-pulse"></div>
+                                            )}
                                         </div>
-                                        <span className="text-[#a692c8] text-xs font-medium">10:42 AM</span>
-                                    </div>
-                                    <h4 className="text-white text-sm font-medium mb-1 truncate">Draft: Decentralized Protocol v2.1 Revision</h4>
-                                    <p className="text-[#a692c8] text-xs truncate opacity-70">The latest draft is ready for review. Please check the encryption keys...</p>
-                                </div>
-                                <div className="flex flex-col items-end gap-2 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                                    <button className="text-[#a692c8] hover:text-primary transition-colors">
-                                        <span className="material-symbols-outlined text-xl">star</span>
-                                    </button>
-                                    <button className="text-[#a692c8] hover:text-red-400 transition-colors">
-                                        <span className="material-symbols-outlined text-xl">delete</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* More placeholders */}
-                            {[...Array(3)].map((_, i) => (
-                                <div key={i} className="inbox-glass-card rounded-xl p-4 flex items-center gap-4 group cursor-pointer opacity-80">
-                                    <div className="w-12 h-12 rounded-full border border-white/5 bg-white/5 shrink-0 flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-white/20">person</span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <div className="h-4 w-24 bg-white/5 rounded animate-pulse"></div>
-                                            <div className="h-3 w-12 bg-white/5 rounded animate-pulse"></div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="text-white font-bold truncate">{msg.from}</h3>
+                                                    {msg.isEncrypted && (
+                                                        <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded border border-primary/20 font-bold">ZK-ENCRYPTED</span>
+                                                    )}
+                                                </div>
+                                                <span className="text-[#a692c8] text-[10px] font-medium uppercase">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            </div>
+                                            <h4 className="text-white text-sm font-bold mb-1 truncate">{msg.subject}</h4>
+                                            <p className="text-[#a692c8] text-xs truncate font-medium">{msg.body}</p>
                                         </div>
-                                        <div className="h-4 w-48 bg-white/5 rounded animate-pulse mb-1"></div>
-                                        <div className="h-3 w-full bg-white/5 rounded animate-pulse"></div>
-                                    </div>
-                                </div>
-                            ))}
+                                        <div className="flex flex-col items-end gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
+                                            <button className="text-[#a692c8] hover:text-primary transition-colors">
+                                                <span className="material-symbols-outlined text-xl">star</span>
+                                            </button>
+                                            <button className="text-[#a692c8] hover:text-primary transition-colors">
+                                                <span className="material-symbols-outlined text-xl">archive</span>
+                                            </button>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
                         </div>
 
                         {/* Footer Status */}
