@@ -1,55 +1,39 @@
-// Whisper Network - .whisper.night Name Server
-// Built for Midnight Network using Compact Language
+pragma language_version 0.20;
+import CompactStandardLibrary;
 
-contract WhisperRegistry {
+// Map: handle_hash -> address_commitment
+export ledger handles: Map<Bytes<32>, Bytes<32>>;
 
-    // Persistent State (Private Ledger)
-    ledger {
-        // Map of Handle (e.g., "alice") -> Shielded Address (Field/Commitment)
-        field handles<String, Field>;
+// Map: handle_hash -> encryption_pubkey
+export ledger public_keys: Map<Bytes<32>, Field>;
 
-        // Map of Handle -> Encryption Public Key (Field)
-        // Public Key is required for others to send encrypted mail
-        field public_keys<String, Field>;
+// Map: address_commitment -> verified status
+export ledger verified_identities: Map<Bytes<32>, Boolean>;
 
-        // Map of Address -> Verification Status (Optional)
-        field verified_identities<Field, Boolean>;
-    }
+// Register a handle
+export circuit register_handle(
+    handle_hash: Bytes<32>,
+    address_commitment: Bytes<32>,
+    encryption_pubkey: Field
+): [] {
+    // 1. Verify handle is not taken
+    assert(!handles.member(disclose(handle_hash)), "Handle already taken");
 
-    constructor() {
-        // Initialization
-    }
+    // 2. Write to ledger
+    handles.insert(disclose(handle_hash), disclose(address_commitment));
+    public_keys.insert(disclose(handle_hash), disclose(encryption_pubkey));
+    verified_identities.insert(disclose(address_commitment), disclose(true));
+}
 
-    // Transitional Logic: Claim a .whisper.night handle
-    export message register_handle(
-        handle: String,
-        address_commitment: Field,
-        encryption_pubkey: Field
-    ) {
-        // 1. Verify handle is not taken
-        verify(!handles.member(handle));
+// Queries
+export circuit resolve_key(handle_hash: Bytes<32>): Field {
+    return public_keys.lookup(disclose(handle_hash));
+}
 
-        // 2. Optional: Verify handle format (Compact is limited in string ops)
-        // For now, we assume handle is the prefix (e.g. "alice" for "alice.whisper.night")
+export circuit resolve_address(handle_hash: Bytes<32>): Bytes<32> {
+    return handles.lookup(disclose(handle_hash));
+}
 
-        // 3. Write to ledger
-        handles[handle] = address_commitment;
-        public_keys[handle] = encryption_pubkey;
-        verified_identities[address_commitment] = true;
-    }
-
-    // Query: Resolve handle to encryption key
-    export query resolve_key(handle: String): Field {
-        return public_keys[handle];
-    }
-
-    // Query: Resolve handle to address commitment
-    export query resolve_address(handle: String): Field {
-        return handles[handle];
-    }
-
-    // Query: Check availability
-    export query check_availability(handle: String): Boolean {
-        return !handles.member(handle);
-    }
+export circuit check_availability(handle_hash: Bytes<32>): Boolean {
+    return !handles.member(disclose(handle_hash));
 }

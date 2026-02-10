@@ -12,8 +12,7 @@ export async function setupProviders(): Promise<MidnightSetupContractProviders> 
     // @ts-ignore
     const wallet = window.midnight?.mnLace;
     if (!wallet) {
-        console.warn("[Providers] Lace Wallet not found. Falling back to simulated providers.");
-        return createMockProviders();
+        throw new Error("Lace Wallet not found. Please ensure the extension is installed and active.");
     }
 
     try {
@@ -29,13 +28,9 @@ export async function setupProviders(): Promise<MidnightSetupContractProviders> 
 
         // Connectivity check for the real prover server on 6300
         const proverUri = uris.proverServerUri || "http://localhost:6300";
-        try {
-            console.log(`[Providers] Testing connection to Prover: ${proverUri}...`);
-            await fetch(proverUri, { mode: 'no-cors' });
-            console.log("%c[Providers] Prover status: ONLINE", "color: #10b981; font-weight: bold;");
-        } catch (e) {
-            console.warn(`[Providers] Prover status: UNREACHABLE at ${proverUri}`);
-        }
+        console.log(`[Providers] Testing connection to Prover: ${proverUri}...`);
+        await fetch(proverUri, { mode: 'no-cors' });
+        console.log("%c[Providers] Prover status: ONLINE", "color: #10b981; font-weight: bold;");
 
         console.log("[Providers] Fetching wallet state...");
         // @ts-ignore
@@ -69,24 +64,7 @@ export async function setupProviders(): Promise<MidnightSetupContractProviders> 
             },
         };
     } catch (err) {
-        console.error("[Providers] Real provider initiation failed, using fallback:", err);
-        return createMockProviders();
+        console.error("[Providers] Real provider initiation failed:", err);
+        throw err;
     }
-}
-
-function createMockProviders(): MidnightSetupContractProviders {
-    return {
-        privateStateProvider: { name: "mock" } as any,
-        zkConfigProvider: { name: "mock" } as any,
-        proofProvider: { name: "mock" } as any,
-        publicDataProvider: { name: "mock" } as any,
-        walletProvider: {
-            coinPublicKey: "0x001122...",
-            encryptionPublicKey: "0x334455...",
-            balanceTx: async () => ({}) as any,
-        },
-        midnightProvider: {
-            submitTx: async () => ({}) as any,
-        },
-    };
 }

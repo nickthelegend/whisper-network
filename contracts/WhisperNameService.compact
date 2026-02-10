@@ -1,47 +1,31 @@
-// Whisper Name Service (WNS) - The .whisper.night Name Server
-// Built for Midnight Network using Compact Language
+pragma language_version 0.20;
+import CompactStandardLibrary;
 
-contract WhisperNameService {
+// Map: handle_hash -> address_commitment
+export ledger registrations: Map<Bytes<32>, Bytes<32>>;
 
-    ledger {
-        // Map of Handle (e.g., "alice") -> Encryption Public Key (Field)
-        // Public Key is used by others to encrypt messages for this user
-        field registrations<String, Field>;
+// Map: handle_hash -> encryption_pubkey
+export ledger addresses: Map<Bytes<32>, Field>;
 
-        // Optional: Map of Handle -> Shielded Address (represented as Field)
-        field addresses<String, Field>;
-    }
+// Register a handle
+export circuit register(
+    handle_hash: Bytes<32>,
+    commitment: Bytes<32>,
+    pubkey: Field
+): [] {
+    // 1. Ensure domain is available
+    assert(!registrations.member(disclose(handle_hash)), "Handle already registered");
 
-    constructor() {
-        // Initial state
-    }
+    // 2. Register
+    registrations.insert(disclose(handle_hash), disclose(commitment));
+    addresses.insert(disclose(handle_hash), disclose(pubkey));
+}
 
-    // Register a new .whisper.night handle
-    export message register_handle(
-        handle: String,
-        encryption_pubkey: Field,
-        shielded_address: Field
-    ) {
-        // Ensure handle is unique
-        verify(!registrations.member(handle));
+// Queries
+export circuit resolve_handle(handle_hash: Bytes<32>): Field {
+    return addresses.lookup(disclose(handle_hash));
+}
 
-        // Write to ledger
-        registrations[handle] = encryption_pubkey;
-        addresses[handle] = shielded_address;
-    }
-
-    // Resolve a handle to its encryption public key
-    export query resolve_encryption_key(handle: String): Field {
-        return registrations[handle];
-    }
-
-    // Resolve a handle to its shielded address
-    export query resolve_address(handle: String): Field {
-        return addresses[handle];
-    }
-
-    // Check if handle is available
-    export query is_available(handle: String): Boolean {
-        return !registrations.member(handle);
-    }
+export circuit check_status(handle_hash: Bytes<32>): Boolean {
+    return registrations.member(disclose(handle_hash));
 }

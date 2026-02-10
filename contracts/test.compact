@@ -1,0 +1,9 @@
+pragma language_version 0.20;
+import CompactStandardLibrary;
+
+export ledger registry: Map<Bytes<32>, Field>;
+
+export circuit is_claimed(s: Opaque<"string">): Boolean {
+    const h = persistentHash<Opaque<"string">>(s);
+    return registry.member(disclose(h));
+}

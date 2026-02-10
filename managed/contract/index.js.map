@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../",
+  "sources": ["contracts/WhisperDNS.compact", "compiler/standard-library.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;MAcA,AAAA,QAeC;;;;;cAdG,aAAsB;cACtB,YAAqB;cACrB,QAAa;cACb,QAAa;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;yCAHb,aAAsB,+BACtB,YAAqB,+BACrB,QAAa,+BACb,QAAa;;;;;;;;;0CAHb,aAAsB;0CACtB,YAAqB;0CACrB,QAAa;0CACb,QAAa;;;OAWhB;MAGD,AAAA,cAGC;;;;;cAH6B,aAAsB;;;;;;;;;;;;;;;;;;yCAAtB,aAAsB;;;;;;;;;gDAAtB,aAAsB;;;OAGnD;MAGD,AAAA,UAEC;;;;;cAFyB,aAAsB;;;;;;;;;;;;;;;;;;yCAAtB,aAAsB;;;;;;;;;4CAAtB,aAAsB;;;OAE/C;;;;;;;GACA;EAzCD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAIA;;;;;;;;;;yEAAkD;IAGlD;;;;;;;;;;yEAAiD;;;;;;;GAkChD;ECOD,AAAA,kBAAiC;oEAAA;;;EDvCjC,AAAA,mBAEC,CAFwB,YAAqB,EAAE,YAAiB;gDAChC,YAAU,GAAK,YAAU;GACzD;EAGD,AAAA,WAeC;;cAdG,aAAsB;cACtB,YAAqB;cACrB,QAAa;cACb,QAAa;;qDAGL;;;;;;;;;;;4KAAyB,aAAW;;;;0HAA5B;;qDAGQ,YAAU,EAAE,QAAM;;IAG1C;;;;;;;;;;2HAAyB,aAAW;;;2HAAY,YAAU;;;wEAAlD;IACR;;;;;;;;;;2HAA4B,YAAU;;;2HAAY,QAAM;;;wEAA7C;;GACd;EAGD,AAAA,iBAGC,4BAH6B,aAAsB;UAC1C,YAAmD,2BAAtC;;;;;;;;;;;;;;4IAAyB,aAAW;;;sHAA5B;mCACpB;;;;;;;;;;;;;;8HAA4B,YAAU;;;wGAA3B;GACrB;EAGD,AAAA,aAEC,4BAFyB,aAAsB;mCACrC;;;;;;;;;;;0JAAyB,aAAW;;;;wGAA5B;GAClB;;;;;;;;;;;;;;;;;;;;IApCD;;;;;uCAAA;;;;;;;;;;;;;;;;4GAAkD;;;;;;uCAAlD;;;;;;;;;;;;4GAAkD;;;;;;;;;;;;;;uCAAlD;;;;;;;;;;;;;;;4GAAkD;;;;;;;;;;;;;;uCAAlD;;;;;;;;;;;;;;;;;4GAAkD;;;;;;;;;KAAA;IAGlD;;;;;uCAAA;;;;;;;;;;;;;;;;4GAAiD;;;;;;uCAAjD;;;;;;;;;;;;4GAAiD;;;;;;;;;;;;;;uCAAjD;;;;;;;;;;;;;;;4GAAiD;;;;;;;;;;;;;;uCAAjD;;;;;;;;;;;;;;;;;4GAAiD;;;;;;;;;KAAA;;;;;;;;;;"
+}

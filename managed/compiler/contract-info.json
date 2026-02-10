@@ -1,0 +1,77 @@
+{
+  "circuits": [
+    {
+      "name": "register",
+      "pure": false,
+      "arguments": [
+        {
+          "name": "handle_hash",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "commitment",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "pubkey",
+          "type": {
+            "type-name": "Field"
+          }
+        },
+        {
+          "name": "secret",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
+      "name": "resolve_handle",
+      "pure": false,
+      "arguments": [
+        {
+          "name": "handle_hash",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Field"
+      }
+    },
+    {
+      "name": "is_claimed",
+      "pure": false,
+      "arguments": [
+        {
+          "name": "handle_hash",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Boolean"
+      }
+    }
+  ],
+  "witnesses": [
+  ],
+  "contracts": [
+  ]
+}
