@@ -22,7 +22,7 @@
           "name": "message_cid",
           "type": {
             "type-name": "Bytes",
-            "length": 32
+            "length": 64
           }
         },
         {
@@ -53,6 +53,29 @@
       ],
       "result-type": {
         "type-name": "Field"
+      }
+    },
+    {
+      "name": "get_message_cid",
+      "pure": false,
+      "arguments": [
+        {
+          "name": "handle_hash",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "index",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Bytes",
+        "length": 64
       }
     }
   ],

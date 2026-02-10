@@ -44,6 +44,7 @@ const nextConfig: NextConfig = {
       "@meshsdk/midnight-setup": path.resolve(__dirname, "./lib/midnight-setup"),
       "isomorphic-ws": path.resolve(__dirname, "./lib/isomorphic-ws-shim.js"),
       "@midnight-ntwrk/onchain-runtime": path.resolve(__dirname, "./lib/onchain-runtime-shim.js"),
+      "eccrypto": false,
     };
 
     if (!isServer) {

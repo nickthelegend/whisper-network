@@ -8,11 +8,11 @@ export type ImpureCircuits<PS> = {
   register_handle(context: __compactRuntime.CircuitContext<PS>,
                   handle_hash_0: Uint8Array,
                   ownership_commitment_0: Uint8Array,
-                  encryption_pubkey_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+                  encryption_pubkey_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   verify_owner(context: __compactRuntime.CircuitContext<PS>,
                handle_hash_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   resolve_key(context: __compactRuntime.CircuitContext<PS>,
-              handle_hash_0: Uint8Array): __compactRuntime.CircuitResults<PS, bigint>;
+              handle_hash_0: Uint8Array): __compactRuntime.CircuitResults<PS, Uint8Array>;
   resolve_address(context: __compactRuntime.CircuitContext<PS>,
                   handle_hash_0: Uint8Array): __compactRuntime.CircuitResults<PS, Uint8Array>;
   check_availability(context: __compactRuntime.CircuitContext<PS>,
@@ -26,11 +26,11 @@ export type Circuits<PS> = {
   register_handle(context: __compactRuntime.CircuitContext<PS>,
                   handle_hash_0: Uint8Array,
                   ownership_commitment_0: Uint8Array,
-                  encryption_pubkey_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+                  encryption_pubkey_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   verify_owner(context: __compactRuntime.CircuitContext<PS>,
                handle_hash_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   resolve_key(context: __compactRuntime.CircuitContext<PS>,
-              handle_hash_0: Uint8Array): __compactRuntime.CircuitResults<PS, bigint>;
+              handle_hash_0: Uint8Array): __compactRuntime.CircuitResults<PS, Uint8Array>;
   resolve_address(context: __compactRuntime.CircuitContext<PS>,
                   handle_hash_0: Uint8Array): __compactRuntime.CircuitResults<PS, Uint8Array>;
   check_availability(context: __compactRuntime.CircuitContext<PS>,
@@ -49,8 +49,8 @@ export type Ledger = {
     isEmpty(): boolean;
     size(): bigint;
     member(key_0: Uint8Array): boolean;
-    lookup(key_0: Uint8Array): bigint;
-    [Symbol.iterator](): Iterator<[Uint8Array, bigint]>
+    lookup(key_0: Uint8Array): Uint8Array;
+    [Symbol.iterator](): Iterator<[Uint8Array, Uint8Array]>
   };
   verified_identities: {
     isEmpty(): boolean;

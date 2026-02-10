@@ -5,7 +5,7 @@ const _descriptor_0 = new __compactRuntime.CompactTypeBytes(32);
 
 const _descriptor_1 = __compactRuntime.CompactTypeBoolean;
 
-const _descriptor_2 = __compactRuntime.CompactTypeField;
+const _descriptor_2 = new __compactRuntime.CompactTypeBytes(65);
 
 const _descriptor_3 = new __compactRuntime.CompactTypeUnsignedInteger(18446744073709551615n, 8);
 
@@ -91,11 +91,11 @@ export class Contract {
                                      'Bytes<32>',
                                      ownership_commitment_0)
         }
-        if (!(typeof(encryption_pubkey_0) === 'bigint' && encryption_pubkey_0 >= 0 && encryption_pubkey_0 <= __compactRuntime.MAX_FIELD)) {
+        if (!(encryption_pubkey_0.buffer instanceof ArrayBuffer && encryption_pubkey_0.BYTES_PER_ELEMENT === 1 && encryption_pubkey_0.length === 65)) {
           __compactRuntime.typeError('register_handle',
                                      'argument 3 (argument 4 as invoked from Typescript)',
                                      'WhisperRegistry.compact line 14 char 1',
-                                     'Field',
+                                     'Bytes<65>',
                                      encryption_pubkey_0)
         }
         const context = { ...contextOrig_0, gasCost: __compactRuntime.emptyRunningCost() };

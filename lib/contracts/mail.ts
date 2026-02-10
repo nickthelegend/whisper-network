@@ -31,6 +31,36 @@ export async function deployMail(): Promise<any> {
     return await (MidnightSetupAPI as any).deployContract(providers, contractInstance as any);
 }
 
+export async function getMessageCount(api: any, handleHash: Uint8Array): Promise<number> {
+    const count = await api.get_message_count(handleHash);
+    return Number(count);
+}
+
+export async function fetchInboxMessages(
+    api: any,
+    handleHash: Uint8Array,
+    count: number
+): Promise<Uint8Array[]> {
+    const messages: Uint8Array[] = [];
+
+    // Fetch last 10 messages or up to count
+    // The index is 0-based. If count is 5, indices are 0,1,2,3,4.
+    // Let's fetch in reverse order (newest first)
+    const start = Math.max(0, count - 10);
+
+    for (let i = count - 1; i >= start; i--) {
+        try {
+            // Index needs to be passed as BigInt if Field type
+            const cidBytes = await api.get_message_cid(handleHash, BigInt(i));
+            messages.push(cidBytes);
+        } catch (e) {
+            console.error(`Failed to fetch message at index ${i}`, e);
+        }
+    }
+
+    return messages;
+}
+
 export async function sendMessage(
     api: any,
     senderHandleHash: Uint8Array,

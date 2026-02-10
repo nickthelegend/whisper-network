@@ -47,3 +47,11 @@ export circuit send_message(
 export circuit get_message_count(handle_hash: Bytes<32>): Field {
     return message_counts.lookup(disclose(handle_hash));
 }
+
+export circuit get_message_cid(handle_hash: Bytes<32>, index: Field): Bytes<64> {
+    const key_struct = InboxKey { 
+        handle: disclose(handle_hash), 
+        index: disclose(index)
+    };
+    return inbox_entries.lookup(persistentHash<InboxKey>(key_struct));
+}

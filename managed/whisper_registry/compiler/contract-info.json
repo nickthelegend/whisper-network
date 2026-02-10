@@ -21,7 +21,8 @@
         {
           "name": "encryption_pubkey",
           "type": {
-            "type-name": "Field"
+            "type-name": "Bytes",
+            "length": 65
           }
         }
       ],
@@ -62,7 +63,8 @@
         }
       ],
       "result-type": {
-        "type-name": "Field"
+        "type-name": "Bytes",
+        "length": 65
       }
     },
     {

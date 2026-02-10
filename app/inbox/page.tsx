@@ -139,7 +139,7 @@ function InboxPageContent() {
                                 <button className="text-xs font-bold text-[#a692c8] hover:text-white transition-colors uppercase tracking-widest h-14 flex items-center">Encrypted</button>
                             </div>
                             <div className="ml-auto flex items-center gap-2">
-                                <span className="text-[10px] text-primary font-mono font-bold uppercase tracking-widest mr-2">{isSyncing ? "SYNCING..." : "LEDGER_SYNCED"}</span>
+                                <span className={`text-[10px] text-primary font-mono font-bold uppercase tracking-widest mr-2 ${isSyncing ? "animate-pulse" : ""}`}>{isSyncing ? "SYNCING..." : "LEDGER_SYNCED"}</span>
                                 <button
                                     onClick={() => {
                                         setIsSyncing(true);
@@ -148,6 +148,7 @@ function InboxPageContent() {
                                             setIsSyncing(false);
                                         });
                                     }}
+                                    disabled={isSyncing}
                                     className={`w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors ${isSyncing ? "animate-spin text-primary" : "text-[#a692c8]"}`}
                                 >
                                     <span className="material-symbols-outlined text-sm">refresh</span>
@@ -161,26 +162,28 @@ function InboxPageContent() {
                         {/* Message List */}
                         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 custom-scrollbar">
                             {isSyncing && messages.length === 0 ? (
-                                [...Array(5)].map((_, i) => (
-                                    <div key={i} className="inbox-glass-card rounded-xl p-4 flex items-center gap-4 animate-pulse">
-                                        <div className="w-12 h-12 rounded-full bg-white/5"></div>
-                                        <div className="flex-1 space-y-2">
-                                            <div className="h-4 w-1/4 bg-white/5 rounded"></div>
-                                            <div className="h-3 w-3/4 bg-white/5 rounded"></div>
+                                <div className="flex flex-col gap-4">
+                                    {[...Array(3)].map((_, i) => (
+                                        <div key={i} className="bg-card-dark/30 rounded-xl p-4 flex items-center gap-4 animate-pulse border border-white/5">
+                                            <div className="w-12 h-12 rounded-full bg-white/5"></div>
+                                            <div className="flex-1 space-y-3">
+                                                <div className="h-4 w-1/3 bg-white/5 rounded"></div>
+                                                <div className="h-3 w-2/3 bg-white/5 rounded"></div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             ) : messages.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full opacity-30 gap-4">
                                     <span className="material-symbols-outlined text-6xl">inbox</span>
                                     <p className="font-bold tracking-widest uppercase text-sm">No transmissions detected on the ledger</p>
                                 </div>
                             ) : (
-                                messages.map((msg) => (
+                                messages.map((msg, i) => (
                                     <Link
-                                        key={msg.id}
+                                        key={msg.id || i}
                                         href={`/inbox/message/${msg.id}`}
-                                        className={`inbox-glass-card rounded-xl p-4 flex items-center gap-4 group cursor-pointer hover:bg-white/5 transition-all ${msg.isRead ? "opacity-70" : "opacity-100"}`}
+                                        className={`inbox-glass-card bg-card-dark/40 border border-white/5 hover:border-primary/30 rounded-xl p-4 flex items-center gap-4 group cursor-pointer hover:bg-white/5 transition-all ${msg.isRead ? "opacity-60" : "opacity-100"}`}
                                     >
                                         <div className="relative shrink-0">
                                             <img
@@ -195,23 +198,15 @@ function InboxPageContent() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
                                                 <div className="flex items-center gap-2">
-                                                    <h3 className="text-white font-bold truncate">{msg.from}</h3>
+                                                    <h3 className="text-white font-bold truncate max-w-[200px]">{msg.from}</h3>
                                                     {msg.isEncrypted && (
-                                                        <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded border border-primary/20 font-bold">ZK-ENCRYPTED</span>
+                                                        <span className="bg-primary/10 text-primary text-[9px] px-2 py-0.5 rounded border border-primary/20 font-bold tracking-wider">ZK-ENCRYPTED</span>
                                                     )}
                                                 </div>
-                                                <span className="text-[#a692c8] text-[10px] font-medium uppercase">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                <span className="text-[#a692c8] text-[10px] font-medium uppercase tracking-widest">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </div>
                                             <h4 className="text-white text-sm font-bold mb-1 truncate">{msg.subject}</h4>
-                                            <p className="text-[#a692c8] text-xs truncate font-medium">{msg.body}</p>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
-                                            <button className="text-[#a692c8] hover:text-primary transition-colors">
-                                                <span className="material-symbols-outlined text-xl">star</span>
-                                            </button>
-                                            <button className="text-[#a692c8] hover:text-primary transition-colors">
-                                                <span className="material-symbols-outlined text-xl">archive</span>
-                                            </button>
+                                            <p className="text-[#a692c8] text-xs truncate font-medium max-w-md">{msg.body}</p>
                                         </div>
                                     </Link>
                                 ))
